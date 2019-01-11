@@ -41,6 +41,42 @@ const toRadians = (v) => {
 	return v * Math.PI / 180;
 }
 
+const compassHeading = (alpha, beta, gamma) => {
+
+  // Convert degrees to radians
+  var alphaRad = alpha * (Math.PI / 180);
+  var betaRad = beta * (Math.PI / 180);
+  var gammaRad = gamma * (Math.PI / 180);
+
+  // Calculate equation components
+  var cA = Math.cos(alphaRad);
+  var sA = Math.sin(alphaRad);
+  var cB = Math.cos(betaRad);
+  var sB = Math.sin(betaRad);
+  var cG = Math.cos(gammaRad);
+  var sG = Math.sin(gammaRad);
+
+  // Calculate A, B, C rotation components
+  var rA = - cA * sG - sA * sB * cG;
+  var rB = - sA * sG + cA * sB * cG;
+  var rC = - cB * cG;
+
+  // Calculate compass heading
+  var compassHeading = Math.atan(rA / rB);
+
+  // Convert from half unit circle to whole unit circle
+  if(rB < 0) {
+    compassHeading += Math.PI;
+  }else if(rA < 0) {
+    compassHeading += 2 * Math.PI;
+  }
+
+  // Convert radians to degrees
+  compassHeading *= 180 / Math.PI;
+
+  return compassHeading;
+
+}
 
 const distance = (pa, pb) => {
 	let R = 6371e3; // metres
@@ -119,7 +155,7 @@ window.initMap = () => {
 		  	navigator.geolocation.getCurrentPosition( (o)=> {
 
 		  		console.log('geolocation:', o);
-		  		oDebug.heading = `${o.heading}`;
+		  		// oDebug.heading = `${o.heading}`;
 
 		  		oDebug.latitude = o.coords.latitude.toString();
 		  		oDebug.longitude = o.coords.longitude.toString();
@@ -174,6 +210,42 @@ window.initMap = () => {
 
 
 	alfrid.Scheduler.addEF(update);
+
+	window.addEventListener('deviceorientation', function(event) {
+
+		var compassdir;
+
+		if(event.webkitCompassHeading) {
+	      // Apple works only with this, alpha doesn't work
+			compassdir = event.webkitCompassHeading;  
+	    } else {
+	    	compassdir = event.alpha;
+	    }
+
+	    oDebug.heading = `${compassdir}`;
+
+
+
+
+	    const compassHousing = document.body.querySelector('.bar');
+	    console.log('event.webkitCompassHeading', event.webkitCompassHeading);
+
+	   // let accuracy = event.webkitCompassAccuracy;
+	    var heading = (270 - event.alpha) * -1;
+	    heading -= window.orientation;
+	    if(heading < 0) {
+	    	heading += 360;
+	    }
+	    console.log('heading', heading);
+	    console.log('event.webkitCompassAccuracy', event.webkitCompassAccuracy);
+	    // transform
+	    // compassHousing.style.webkitTransition = 'all 0.03s ease-in-out';
+	    // rotate the compass
+	    compassHousing.style.webkitTransform = 'rotateZ(' + heading + 'deg)';
+	    // previousHeading = heading;
+
+
+	}, false);
 }
 
 
