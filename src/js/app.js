@@ -15,7 +15,8 @@ if(document.body) {
 	window.addEventListener('DOMContentLoaded', _init);
 }
 
-
+const zoom = 16;
+const TILE_SIZE = 256;
 let map, marker, markerTarget1, markerTarget2;
  
 let target1 = {
@@ -33,6 +34,7 @@ const oDebug = {
 	longitude:'0',
 	dist1:'0',
 	dist2:'0',
+	heading:'null'
 }
 
 const toRadians = (v) => {
@@ -57,13 +59,42 @@ const distance = (pa, pb) => {
 	return d;
 }
 
+
+const project = (latLng) => {
+	var siny = Math.sin(latLng.lat() * Math.PI / 180);
+
+	// Truncating to 0.9999 effectively limits latitude to 89.189. This is
+	// about a third of a tile past the edge of the world tile.
+	siny = Math.min(Math.max(siny, -0.9999), 0.9999);
+
+	return new google.maps.Point(
+	    TILE_SIZE * (0.5 + latLng.lng() / 360),
+	    TILE_SIZE * (0.5 - Math.log((1 + siny) / (1 - siny)) / (4 * Math.PI)));
+}
+
+let canvas, ctx, projection;
+let point = {
+	x:0, y:0
+}
+
 window.initMap = () => {
 	console.log('init Map');
 
+
+	canvas = document.createElement("canvas");
+	canvas.className = 'canvas-overlay';
+	canvas.width = window.innerWidth;
+	canvas.height = window.innerHeight;
+
+	document.body.appendChild(canvas);
+	ctx = canvas.getContext('2d');
+
 	map = new google.maps.Map(document.getElementById('map'), {
 		center: {lat: 51.528111499999994, lng: -0.0859945},
-		zoom: 16
+		zoom
 	});
+
+
 
 	markerTarget1 = new google.maps.Marker({
 		position: target1,
@@ -87,6 +118,9 @@ window.initMap = () => {
 		if (navigator.geolocation) {
 		  	navigator.geolocation.getCurrentPosition( (o)=> {
 
+		  		console.log('geolocation:', o);
+		  		oDebug.heading = `${o.heading}`;
+
 		  		oDebug.latitude = o.coords.latitude.toString();
 		  		oDebug.longitude = o.coords.longitude.toString();
 
@@ -103,8 +137,25 @@ window.initMap = () => {
 		  			title: 'Me'
 		  		});
 
+
 		  		oDebug.dist1 = `${distance(myLatlng, target1)}`;
 		  		oDebug.dist2 = `${distance(myLatlng, target2)}`;
+
+
+		  		var scale = 1 << zoom;
+		  		console.log('scale :', scale, zoom);
+
+		  		var worldCoordinate = project(marker.position);
+		  		var pixelCoordinate = new google.maps.Point(
+		  		            Math.floor(worldCoordinate.x * scale),
+		  		            Math.floor(worldCoordinate.y * scale));
+
+		  		console.log(worldCoordinate, pixelCoordinate);
+
+		  		ctx.clearRect(0, 0, canvas.width, canvas.height);
+		  		ctx.fillStyle = 'red';
+		  		ctx.fillRect(worldCoordinate.x, worldCoordinate.y, 10, 10);
+
 		  	} );
 		}
 	}
@@ -118,8 +169,24 @@ window.initMap = () => {
 		gui.add(oDebug, 'longitude').listen();
 		gui.add(oDebug, 'dist1').listen();
 		gui.add(oDebug, 'dist2').listen();
+		gui.add(oDebug, 'heading').listen();
 	}, 200);
+
+
+	alfrid.Scheduler.addEF(update);
 }
+
+
+function update() {
+	// console.log('Update');
+
+	
+
+	// ctx.fillStyle = Math.floor(Math.random() * 0xFFFFFF);
+	// ctx.fillRect(Math.random() * 100, Math.random() * 100, 100, 100);
+	
+}
+
 
 function _init() {
 }
