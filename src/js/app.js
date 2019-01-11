@@ -16,11 +16,45 @@ if(document.body) {
 }
 
 
-let map, marker;
+let map, marker, markerTarget1, markerTarget2;
+ 
+let target1 = {
+	lat:51.52864213850285,
+	lng:-0.08503963359066802
+}
+
+let target2 = {
+	lat:51.52790792006495,
+	lng:-0.08365561373898345
+}
 
 const oDebug = {
 	latitude:'0',
-	longitude:'0'
+	longitude:'0',
+	dist1:'0',
+	dist2:'0',
+}
+
+const toRadians = (v) => {
+	return v * Math.PI / 180;
+}
+
+
+const distance = (pa, pb) => {
+	let R = 6371e3; // metres
+	let φ1 = toRadians(pa.lat);
+	let φ2 = toRadians(pb.lat);
+	let Δφ = toRadians(pb.lat - pa.lat);
+	let Δλ = toRadians(pb.lng - pa.lng);
+
+	let a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+	        Math.cos(φ1) * Math.cos(φ2) *
+	        Math.sin(Δλ/2) * Math.sin(Δλ/2);
+	let c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+	let d = R * c;
+
+	return d;
 }
 
 window.initMap = () => {
@@ -31,6 +65,21 @@ window.initMap = () => {
 		zoom: 16
 	});
 
+	markerTarget1 = new google.maps.Marker({
+		position: target1,
+		map: map,
+		title: 'Target 1'
+	});
+
+
+	markerTarget2 = new google.maps.Marker({
+		position: target2,
+		map: map,
+		title: 'Target 1'
+	});
+
+
+	console.log('markerTarget1', markerTarget1);
 
 
 	const updateLocation = () => {
@@ -54,6 +103,8 @@ window.initMap = () => {
 		  			title: 'Me'
 		  		});
 
+		  		oDebug.dist1 = `${distance(myLatlng, target1)}`;
+		  		oDebug.dist2 = `${distance(myLatlng, target2)}`;
 		  	} );
 		}
 	}
@@ -65,6 +116,8 @@ window.initMap = () => {
 	setTimeout(()=> {
 		gui.add(oDebug, 'latitude').listen();
 		gui.add(oDebug, 'longitude').listen();
+		gui.add(oDebug, 'dist1').listen();
+		gui.add(oDebug, 'dist2').listen();
 	}, 200);
 }
 
