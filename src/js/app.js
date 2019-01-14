@@ -34,6 +34,7 @@ const oDebug = {
 	longitude:'0',
 	dist1:'0',
 	dist2:'0',
+	dist:'0',
 	heading:'null',
 	alpha:'0',
 	headingOffset:'0'
@@ -99,8 +100,12 @@ function _initMap() {
 		  		locCurr.lat = myLatlng.lat;
 		  		locCurr.lng = myLatlng.lng;
 
-		  		headingGeo = directionLatLng(locCurr, locPrev) + Math.PI/2;
-		  		HeadingCalibre.update(headingGeo);
+		  		let dist = distanceLatLng(locPrev, locCurr)
+
+		  		if(dist > 5) {
+		  			headingGeo = directionLatLng(locCurr, locPrev) + Math.PI/2;	
+		  			HeadingCalibre.update(headingGeo);
+		  		}
 
 		  		marker = new google.maps.Marker({
 		  			position: myLatlng,
@@ -108,6 +113,7 @@ function _initMap() {
 		  			title: 'Me'
 		  		});
 
+		  		oDebug.dist = `${dist}`;
 		  		oDebug.dist1 = `${distanceLatLng(myLatlng, target1)}`;
 		  		oDebug.dist2 = `${distanceLatLng(myLatlng, target2)}`;
 
@@ -129,6 +135,15 @@ function _initMap() {
 
 	setInterval(updateLocation, 1000);
 
+	const tmp = {
+		start:() => {
+			HeadingCalibre.start(locCurr);
+		},
+		stop:() => {
+			HeadingCalibre.stop(locCurr);
+		}
+	}
+
 
 	setTimeout(()=> {
 		// gui.add(oDebug, 'latitude').listen();
@@ -138,8 +153,9 @@ function _initMap() {
 		gui.add(oDebug, 'heading').listen();
 		gui.add(oDebug, 'alpha').listen();
 		gui.add(oDebug, 'headingOffset').listen();
-		gui.add(HeadingCalibre, 'start');
-		gui.add(HeadingCalibre, 'stop');
+		gui.add(oDebug, 'dist').listen();
+		gui.add(tmp, 'start');
+		gui.add(tmp, 'stop');
 	}, 200);
 
 
