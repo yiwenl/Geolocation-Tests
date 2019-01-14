@@ -95,8 +95,8 @@ function _initMap() {
 		  		if(marker) { marker.setMap(null);	}
 
 		  		const myLatlng = {
-		  			lat: o.coords.latitude, 
-		  			lng: o.coords.longitude + _fake
+		  			lat: o.coords.latitude + _fake, 
+		  			lng: o.coords.longitude
 		  		};
 		  		locPrev.lat = locCurr.lat;
 		  		locPrev.lng = locCurr.lng;
@@ -133,7 +133,7 @@ function _initMap() {
 		}
 
 		if(!GL.isMobile) {
-			_fake += 0.0001;
+			_fake += 0.00005;
 		}
 	}
 
@@ -147,11 +147,17 @@ function _initMap() {
 				map: map,
 				title: 'Target 1'
 			});
-			HeadingCalibre.start(locCurr);
+			HeadingCalibre.start({
+				lat:locCurr.lat,
+				lng:locCurr.lng,
+			});
 		},
 		stop:() => {
-			markerStart.setMap(null);
-			HeadingCalibre.stop(locCurr);
+			// markerStart.setMap(null);
+			HeadingCalibre.stop({
+				lat:locCurr.lat,
+				lng:locCurr.lng,
+			});
 		}
 	}
 
@@ -200,6 +206,7 @@ function update() {
 	ctx.translate(point.x, point.y);
 
 	ctx.save();
+	console.log('angle :', heading, HeadingCalibre.offset);
 	ctx.rotate(heading + HeadingCalibre.offset);
 	ctx.fillStyle = 'rgba(255, 200, 0, 1)';
 	ctx.fillRect(-w/2, -h, w, h);
