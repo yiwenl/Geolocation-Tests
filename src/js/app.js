@@ -96,7 +96,7 @@ function _initMap() {
 
 		  		const myLatlng = {
 		  			lat: o.coords.latitude + _fake, 
-		  			lng: o.coords.longitude
+		  			lng: o.coords.longitude + _fake
 		  		};
 		  		locPrev.lat = locCurr.lat;
 		  		locPrev.lng = locCurr.lng;
@@ -107,8 +107,8 @@ function _initMap() {
 
 		  		if(dist > 5) {
 		  			headingGeo = directionLatLng(locCurr, locPrev) + Math.PI/2;	
-		  			HeadingCalibre.update(headingGeo);
 		  		}
+		  		HeadingCalibre.update(heading);
 
 		  		pathTracker.add(new google.maps.LatLng(myLatlng.lat, myLatlng.lng));
 
@@ -188,7 +188,10 @@ function _initMap() {
 
 	    oDebug.heading = `${heading}`;
 	    oDebug.alpha = `${event.alpha}`;
-	    heading = -event.alpha * Math.PI / 180 - headingOffset + Math.PI/2;
+	    heading = -event.alpha * Math.PI / 180;
+	    if(!GL.isMobile) {
+	    	heading = -0.5;
+	    }
 
 
 	}, false);
@@ -206,7 +209,7 @@ function update() {
 	ctx.translate(point.x, point.y);
 
 	ctx.save();
-	console.log('angle :', heading, HeadingCalibre.offset);
+	// console.log('angle :', heading, HeadingCalibre.offset);
 	ctx.rotate(heading + HeadingCalibre.offset);
 	ctx.fillStyle = 'rgba(255, 200, 0, 1)';
 	ctx.fillRect(-w/2, -h, w, h);
@@ -221,7 +224,7 @@ function update() {
 
 	ctx.restore();
 
-	pathTracker.update();
+	pathTracker.update(heading);
 
 	oDebug.headingOffset = `${HeadingCalibre.offset}`;
 }

@@ -1,21 +1,15 @@
 // HeadingCalibre.js
 import { fromLatLngToPixel, distanceLatLng, directionLatLng } from './';
+import { GL } from 'alfrid';
 
 class HeadingCalibre {
 
 	constructor() {
-		window.addEventListener('deviceorientationabsolute', (e)=> this._onOrientation(e));
-
 		this._heading = 0;
 		this._offset = 0;
 		this._isCalibrating = false;
 		this._locStart;
 		this._locEnd;
-	}
-
-
-	_onOrientation(e) {
-		this._heading = -event.alpha;
 	}
 
 	start(loc) {
@@ -24,14 +18,18 @@ class HeadingCalibre {
 		this._isCalibrating = true;
 	}
 
-	update(headingGeo) {
+	update(heading) {
 		if(!this._isCalibrating) {
 			return;
 		}
+
+		this._heading = heading;
+		console.log('update :', this._heading);
 		this._headings.push(this._heading);
 	}
 
 	stop(loc) {
+		const rad = 180 / Math.PI;
 		this._isCalibrating = false;
 		this._locEnd = loc;
 		let sumHeading = 0;
@@ -51,7 +49,7 @@ class HeadingCalibre {
 			headingGeo -= Math.PI * 2;
 		}
 		console.log('headingGeo', headingGeo * 180 / Math.PI);
-		this._offset = (headingGeo - sumHeading) - Math.PI/2;
+		this._offset = (headingGeo - sumHeading);
 		console.log(this._offset * 180 / Math.PI);
 
 	}
