@@ -4,3 +4,4 @@
 export { saveImage } from './saveImage'
 export { fromLatLngToPixel } from './fromLatLngToPixel'
 export { distanceLatLng } from './distanceLatLng'
+export { directionLatLng } from './directionLatLng'

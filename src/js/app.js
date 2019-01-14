@@ -7,7 +7,7 @@ import GoogleMapsLoader from 'google-maps';
 const GOOGLE_MAP_API_KEY = 'AIzaSyBqCqukoHGzJjI7Sqo41Nw9XT0AhnGoVDw';
 
 
-import { fromLatLngToPixel, distanceLatLng } from './utils';
+import { fromLatLngToPixel, distanceLatLng, directionLatLng } from './utils';
 
 if(document.body) {
 	_init();
@@ -45,12 +45,17 @@ let point = {
 }
 let heading = 0;
 let headingOffset = 0;
+let headingGeo = 0;
 let hasLoggedInit = false;
 
+let locPrev = {lat: 51.528111499999994, lng: -0.0859945};
+let locCurr = {lat: 51.528111499999994, lng: -0.0859945};
+
+let pointCurr = {x:0, y:0};
+let pointPrev = {x:0, y:0};
+let _fake = 0;
+
 function _initMap() {
-	console.log('init Map');
-
-
 	canvas = document.createElement("canvas");
 	canvas.className = 'canvas-overlay';
 	canvas.width = window.innerWidth;
@@ -85,8 +90,14 @@ function _initMap() {
 
 		  		const myLatlng = {
 		  			lat: o.coords.latitude, 
-		  			lng: o.coords.longitude
+		  			lng: o.coords.longitude + _fake
 		  		};
+		  		locPrev.lat = locCurr.lat;
+		  		locPrev.lng = locCurr.lng;
+		  		locCurr.lat = myLatlng.lat;
+		  		locCurr.lng = myLatlng.lng;
+
+		  		headingGeo = directionLatLng(locCurr, locPrev) + Math.PI/2;
 
 		  		marker = new google.maps.Marker({
 		  			position: myLatlng,
@@ -98,13 +109,22 @@ function _initMap() {
 		  		oDebug.dist2 = `${distanceLatLng(myLatlng, target2)}`;
 
 		  		point = fromLatLngToPixel(map, marker.position);
-		  		// console.log('Point', point);
+
+		  		pointPrev.x = pointCurr.x;
+		  		pointPrev.y = pointCurr.y;
+
+		  		pointCurr.x = point.x;
+		  		pointCurr.y = point.y;
 		  	} );
+		}
+
+		if(!GL.isMobile) {
+			_fake += 0.0001;
 		}
 	}
 
 
-	setInterval(updateLocation, 2000);
+	setInterval(updateLocation, 1000);
 
 
 	setTimeout(()=> {
@@ -126,8 +146,6 @@ function _initMap() {
 			hasLoggedInit = true;
 		}
 
-
-
 	    oDebug.heading = `${heading}`;
 	    oDebug.alpha = `${event.alpha}`;
 	    heading = -event.alpha * Math.PI / 180 - headingOffset + Math.PI/2;
@@ -145,9 +163,18 @@ function update() {
 	const w = 5;
 	const h = 50;
 	ctx.translate(point.x, point.y);
+
+	ctx.save();
 	ctx.rotate(heading);
 	ctx.fillStyle = 'rgba(255, 128, 0, 1)';
 	ctx.fillRect(-w/2, -h, w, h);
+	ctx.restore();
+
+	ctx.save();
+	ctx.rotate(headingGeo);
+	ctx.fillStyle = 'rgba(0, 200, 128, 1)';
+	ctx.fillRect(-w/2, -h, w, h);
+	ctx.restore();
 
 	ctx.restore();
 }
