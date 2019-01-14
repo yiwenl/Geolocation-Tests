@@ -7,7 +7,7 @@ import GoogleMapsLoader from 'google-maps';
 const GOOGLE_MAP_API_KEY = 'AIzaSyBqCqukoHGzJjI7Sqo41Nw9XT0AhnGoVDw';
 
 
-import { fromLatLngToPixel } from './utils';
+import { fromLatLngToPixel, distanceLatLng } from './utils';
 
 if(document.body) {
 	_init();
@@ -16,8 +16,7 @@ if(document.body) {
 }
 
 const zoom = 16;
-const TILE_SIZE = 256;
-let map, marker, markerTarget1, markerTarget2, markerNorth;
+let map, marker, markerTarget1, markerTarget2;
  
 let target1 = {
 	lat:51.52864213850285,
@@ -38,27 +37,6 @@ const oDebug = {
 	alpha:'0'
 }
 
-const toRadians = (v) => {
-	return v * Math.PI / 180;
-}
-
-
-const distance = (pa, pb) => {
-	let R = 6371e3; // metres
-	let φ1 = toRadians(pa.lat);
-	let φ2 = toRadians(pb.lat);
-	let Δφ = toRadians(pb.lat - pa.lat);
-	let Δλ = toRadians(pb.lng - pa.lng);
-
-	let a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
-	        Math.cos(φ1) * Math.cos(φ2) *
-	        Math.sin(Δλ/2) * Math.sin(Δλ/2);
-	let c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-
-	let d = R * c;
-
-	return d;
-}
 
 
 let canvas, ctx, projection;
@@ -67,10 +45,9 @@ let point = {
 }
 let heading = 0;
 let headingOffset = 0;
-let hasCalibred = false;
 let hasLoggedInit = false;
 
-window.initMap = () => {
+function _initMap() {
 	console.log('init Map');
 
 
@@ -81,12 +58,6 @@ window.initMap = () => {
 
 	document.body.appendChild(canvas);
 	ctx = canvas.getContext('2d');
-
-	map = new google.maps.Map(document.getElementById('map'), {
-		center: {lat: 51.528111499999994, lng: -0.0859945},
-		zoom
-	});
-
 
 	markerTarget1 = new google.maps.Marker({
 		position: target1,
@@ -107,9 +78,6 @@ window.initMap = () => {
 		if (navigator.geolocation) {
 		  	navigator.geolocation.getCurrentPosition( (o)=> {
 
-		  		// console.log('geolocation:', o);
-		  		// oDebug.heading = `${o.heading}`;
-
 		  		oDebug.latitude = o.coords.latitude.toString();
 		  		oDebug.longitude = o.coords.longitude.toString();
 
@@ -126,25 +94,8 @@ window.initMap = () => {
 		  			title: 'Me'
 		  		});
 
-		  		if(!hasCalibred ) {
-
-		  			const latlngNorth = {
-		  				lat: o.coords.latitude + 0.0005, 
-		  				lng: o.coords.longitude
-		  			};
-
-		  			markerNorth = new google.maps.Marker({
-		  				position: latlngNorth,
-		  				map: map,
-		  				title: 'Me'
-		  			});
-
-		  			hasCalibred = true;
-		  		}
-
-
-		  		oDebug.dist1 = `${distance(myLatlng, target1)}`;
-		  		oDebug.dist2 = `${distance(myLatlng, target2)}`;
+		  		oDebug.dist1 = `${distanceLatLng(myLatlng, target1)}`;
+		  		oDebug.dist2 = `${distanceLatLng(myLatlng, target2)}`;
 
 		  		point = fromLatLngToPixel(map, marker.position);
 		  		// console.log('Point', point);
@@ -154,12 +105,6 @@ window.initMap = () => {
 
 
 	setInterval(updateLocation, 2000);
-	const tmp = {
-		callibre:() => {
-			headingOffset = heading;
-			markerNorth.setMap(null);
-		}
-	}
 
 
 	setTimeout(()=> {
@@ -169,7 +114,6 @@ window.initMap = () => {
 		gui.add(oDebug, 'dist2').listen();
 		gui.add(oDebug, 'heading').listen();
 		gui.add(oDebug, 'alpha').listen();
-		gui.add(tmp, 'callibre');
 	}, 200);
 
 
@@ -177,12 +121,11 @@ window.initMap = () => {
 
 	window.addEventListener('deviceorientationabsolute', function(event) {
 
-		// console.log('on Orientation:', event);
-
 		if(!hasLoggedInit) {
 			console.log(event.absolute, event.alpha);
 			hasLoggedInit = true;
 		}
+
 
 
 	    oDebug.heading = `${heading}`;
@@ -214,11 +157,14 @@ function _init() {
 	GoogleMapsLoader.KEY = GOOGLE_MAP_API_KEY;
 	const el = document.getElementById('map');
 
-	GoogleMapsLoader.load(function(google) {
-	    new google.maps.Map(el, {
+	GoogleMapsLoader.load((google) => {
+	    map = new google.maps.Map(el, {
 	    	center: {lat: 51.528111499999994, lng: -0.0859945},
 	    	zoom
 	    });
+
+	    _initMap();
 	});
 
 }
+
