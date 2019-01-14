@@ -232,7 +232,7 @@ window.initMap = () => {
 
 	   // let accuracy = event.webkitCompassAccuracy;
 	    var heading = (270 - event.alpha) * -1;
-	    heading -= window.orientation;
+	    // heading -= window.orientation;
 	    if(heading < 0) {
 	    	heading += 360;
 	    }
