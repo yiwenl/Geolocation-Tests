@@ -41,42 +41,6 @@ const toRadians = (v) => {
 	return v * Math.PI / 180;
 }
 
-const compassHeading = (alpha, beta, gamma) => {
-
-  // Convert degrees to radians
-  var alphaRad = alpha * (Math.PI / 180);
-  var betaRad = beta * (Math.PI / 180);
-  var gammaRad = gamma * (Math.PI / 180);
-
-  // Calculate equation components
-  var cA = Math.cos(alphaRad);
-  var sA = Math.sin(alphaRad);
-  var cB = Math.cos(betaRad);
-  var sB = Math.sin(betaRad);
-  var cG = Math.cos(gammaRad);
-  var sG = Math.sin(gammaRad);
-
-  // Calculate A, B, C rotation components
-  var rA = - cA * sG - sA * sB * cG;
-  var rB = - sA * sG + cA * sB * cG;
-  var rC = - cB * cG;
-
-  // Calculate compass heading
-  var compassHeading = Math.atan(rA / rB);
-
-  // Convert from half unit circle to whole unit circle
-  if(rB < 0) {
-    compassHeading += Math.PI;
-  }else if(rA < 0) {
-    compassHeading += 2 * Math.PI;
-  }
-
-  // Convert radians to degrees
-  compassHeading *= 180 / Math.PI;
-
-  return compassHeading;
-
-}
 
 const distance = (pa, pb) => {
 	let R = 6371e3; // metres
@@ -96,23 +60,12 @@ const distance = (pa, pb) => {
 }
 
 
-const project = (latLng) => {
-	var siny = Math.sin(latLng.lat() * Math.PI / 180);
-
-	// Truncating to 0.9999 effectively limits latitude to 89.189. This is
-	// about a third of a tile past the edge of the world tile.
-	siny = Math.min(Math.max(siny, -0.9999), 0.9999);
-
-	return new google.maps.Point(
-	    TILE_SIZE * (0.5 + latLng.lng() / 360),
-	    TILE_SIZE * (0.5 - Math.log((1 + siny) / (1 - siny)) / (4 * Math.PI)));
-}
-
 let canvas, ctx, projection;
 let point = {
 	x:0, y:0
 }
 let heading = 0;
+let headingOffset = 0;
 
 window.initMap = () => {
 	console.log('init Map');
@@ -206,6 +159,11 @@ window.initMap = () => {
 
 
 	setInterval(updateLocation, 2000);
+	const tmp = {
+		callibre:() => {
+			headingOffset = heading;
+		}
+	}
 
 
 	setTimeout(()=> {
@@ -214,6 +172,7 @@ window.initMap = () => {
 		gui.add(oDebug, 'dist1').listen();
 		gui.add(oDebug, 'dist2').listen();
 		gui.add(oDebug, 'heading').listen();
+		gui.add(tmp, 'callibre');
 	}, 200);
 
 
@@ -240,7 +199,7 @@ window.initMap = () => {
 	    // previousHeading = heading;
 
 	    oDebug.heading = `${heading}`;
-	    heading = -event.alpha * Math.PI / 180 + Math.PI/2;
+	    heading = -event.alpha * Math.PI / 180 + Math.PI/2 - headingOffset;
 
 
 	}, false);
