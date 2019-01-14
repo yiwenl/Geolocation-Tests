@@ -110,7 +110,7 @@ window.initMap = () => {
 		if (navigator.geolocation) {
 		  	navigator.geolocation.getCurrentPosition( (o)=> {
 
-		  		console.log('geolocation:', o);
+		  		// console.log('geolocation:', o);
 		  		// oDebug.heading = `${o.heading}`;
 
 		  		oDebug.latitude = o.coords.latitude.toString();
@@ -170,7 +170,7 @@ window.initMap = () => {
 		  		};
 
 		  		point = fromLatLngToPixel(marker.position);
-		  		console.log('Point', point);
+		  		// console.log('Point', point);
 		  	} );
 		}
 	}
