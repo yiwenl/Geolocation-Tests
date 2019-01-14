@@ -3,6 +3,7 @@ import debugPolyfill from './debug/debugPolyfill';
 import alfrid, { GL } from 'alfrid';
 
 import GoogleMapsLoader from 'google-maps';
+import HeadingCalibre from './utils/HeadingCalibre';
 
 const GOOGLE_MAP_API_KEY = 'AIzaSyBqCqukoHGzJjI7Sqo41Nw9XT0AhnGoVDw';
 
@@ -34,7 +35,8 @@ const oDebug = {
 	dist1:'0',
 	dist2:'0',
 	heading:'null',
-	alpha:'0'
+	alpha:'0',
+	headingOffset:'0'
 }
 
 
@@ -98,6 +100,7 @@ function _initMap() {
 		  		locCurr.lng = myLatlng.lng;
 
 		  		headingGeo = directionLatLng(locCurr, locPrev) + Math.PI/2;
+		  		HeadingCalibre.update(headingGeo);
 
 		  		marker = new google.maps.Marker({
 		  			position: myLatlng,
@@ -128,12 +131,15 @@ function _initMap() {
 
 
 	setTimeout(()=> {
-		gui.add(oDebug, 'latitude').listen();
-		gui.add(oDebug, 'longitude').listen();
-		gui.add(oDebug, 'dist1').listen();
-		gui.add(oDebug, 'dist2').listen();
+		// gui.add(oDebug, 'latitude').listen();
+		// gui.add(oDebug, 'longitude').listen();
+		// gui.add(oDebug, 'dist1').listen();
+		// gui.add(oDebug, 'dist2').listen();
 		gui.add(oDebug, 'heading').listen();
 		gui.add(oDebug, 'alpha').listen();
+		gui.add(oDebug, 'headingOffset').listen();
+		gui.add(HeadingCalibre, 'start');
+		gui.add(HeadingCalibre, 'stop');
 	}, 200);
 
 
@@ -156,6 +162,7 @@ function _initMap() {
 
 
 function update() {
+	// console.log('HeadingCalibre.offset', HeadingCalibre.offset);
 	ctx.clearRect(0, 0, canvas.width, canvas.height);	
 
 	ctx.save();
@@ -165,7 +172,7 @@ function update() {
 	ctx.translate(point.x, point.y);
 
 	ctx.save();
-	ctx.rotate(heading);
+	ctx.rotate(heading + HeadingCalibre.offset);
 	ctx.fillStyle = 'rgba(255, 128, 0, 1)';
 	ctx.fillRect(-w/2, -h, w, h);
 	ctx.restore();
@@ -177,6 +184,8 @@ function update() {
 	ctx.restore();
 
 	ctx.restore();
+
+	oDebug.headingOffset = `${HeadingCalibre.offset}`;
 }
 
 
