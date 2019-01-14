@@ -3,6 +3,7 @@ import debugPolyfill from './debug/debugPolyfill';
 import alfrid, { GL } from 'alfrid';
 
 import GoogleMapsLoader from 'google-maps';
+import PathTracker from './utils/PathTracker';
 import HeadingCalibre from './utils/HeadingCalibre';
 
 const GOOGLE_MAP_API_KEY = 'AIzaSyBqCqukoHGzJjI7Sqo41Nw9XT0AhnGoVDw';
@@ -42,7 +43,7 @@ const oDebug = {
 
 
 
-let canvas, ctx, projection;
+let canvas, ctx, projection, pathTracker;
 let point = {
 	x:0, y:0
 }
@@ -66,6 +67,8 @@ function _initMap() {
 
 	document.body.appendChild(canvas);
 	ctx = canvas.getContext('2d');
+
+	pathTracker = new PathTracker(canvas, map);
 
 	markerTarget1 = new google.maps.Marker({
 		position: target1,
@@ -106,6 +109,8 @@ function _initMap() {
 		  			headingGeo = directionLatLng(locCurr, locPrev) + Math.PI/2;	
 		  			HeadingCalibre.update(headingGeo);
 		  		}
+
+		  		pathTracker.add(new google.maps.LatLng(myLatlng.lat, myLatlng.lng));
 
 		  		marker = new google.maps.Marker({
 		  			position: myLatlng,
@@ -162,6 +167,7 @@ function _initMap() {
 		gui.add(oDebug, 'dist').listen();
 		gui.add(tmp, 'start');
 		gui.add(tmp, 'stop');
+		gui.add(pathTracker, 'clear');
 	}, 200);
 
 
@@ -189,23 +195,26 @@ function update() {
 
 	ctx.save();
 
-	const w = 5;
+	let w = 8;
 	const h = 50;
 	ctx.translate(point.x, point.y);
 
 	ctx.save();
 	ctx.rotate(heading + HeadingCalibre.offset);
-	ctx.fillStyle = 'rgba(255, 128, 0, 1)';
+	ctx.fillStyle = 'rgba(255, 200, 0, 1)';
 	ctx.fillRect(-w/2, -h, w, h);
 	ctx.restore();
 
+	w = 3;
 	ctx.save();
 	ctx.rotate(headingGeo);
-	ctx.fillStyle = 'rgba(0, 200, 128, 1)';
+	ctx.fillStyle = 'rgba(0, 180, 128, 1)';
 	ctx.fillRect(-w/2, -h, w, h);
 	ctx.restore();
 
 	ctx.restore();
+
+	pathTracker.update();
 
 	oDebug.headingOffset = `${HeadingCalibre.offset}`;
 }
@@ -215,7 +224,7 @@ function _init() {
 	GoogleMapsLoader.KEY = GOOGLE_MAP_API_KEY;
 	const el = document.getElementById('map');
 
-	GoogleMapsLoader.load((google) => {
+	GoogleMapsLoader.load((_google) => {
 	    map = new google.maps.Map(el, {
 	    	center: {lat: 51.528111499999994, lng: -0.0859945},
 	    	zoom
