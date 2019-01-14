@@ -44,7 +44,7 @@ class HeadingCalibre {
 		sumHeading /= this._headings.length;
 
 		let headingGeo = directionLatLng(this._locEnd, this._locStart) + Math.PI/2;	
-		this._offset = headingGeo - sumHeading;
+		this._offset = (headingGeo - sumHeading) + Math.PI/2;
 
 	}
 
