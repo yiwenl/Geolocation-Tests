@@ -112,6 +112,7 @@ let canvas, ctx, projection;
 let point = {
 	x:0, y:0
 }
+let heading = 0;
 
 window.initMap = () => {
 	console.log('init Map');
@@ -178,20 +179,27 @@ window.initMap = () => {
 		  		oDebug.dist2 = `${distance(myLatlng, target2)}`;
 
 
-		  		var scale = 1 << zoom;
-		  		console.log('scale :', scale, zoom);
+		  		const fromLatLngToPixel = (position) => {
+		  			var scale = Math.pow(2, map.getZoom());
+		  			var proj = map.getProjection();
+		  			var bounds = map.getBounds();
 
-		  		var worldCoordinate = project(marker.position);
-		  		var pixelCoordinate = new google.maps.Point(
-		  		            Math.floor(worldCoordinate.x * scale),
-		  		            Math.floor(worldCoordinate.y * scale));
+		  			var nw = proj.fromLatLngToPoint(
+		  				new google.maps.LatLng(
+		  					bounds.getNorthEast().lat(),
+		  					bounds.getSouthWest().lng()
+		  				));
+		  			var point = proj.fromLatLngToPoint(position);
 
-		  		console.log(worldCoordinate, pixelCoordinate);
+		  			return new google.maps.Point(
+		  				Math.floor((point.x - nw.x) * scale),
+		  				Math.floor((point.y - nw.y) * scale));
 
-		  		ctx.clearRect(0, 0, canvas.width, canvas.height);
-		  		ctx.fillStyle = 'red';
-		  		ctx.fillRect(worldCoordinate.x, worldCoordinate.y, 10, 10);
+		  			// return point;
+		  		};
 
+		  		point = fromLatLngToPixel(marker.position);
+		  		console.log('Point', point);
 		  	} );
 		}
 	}
@@ -213,36 +221,26 @@ window.initMap = () => {
 
 	window.addEventListener('deviceorientation', function(event) {
 
-		var compassdir;
 
-		if(event.webkitCompassHeading) {
-	      // Apple works only with this, alpha doesn't work
-			compassdir = event.webkitCompassHeading;  
-	    } else {
-	    	compassdir = event.alpha;
-	    }
+	   //  const compassHousing = document.body.querySelector('.bar');
+	   //  console.log('event.webkitCompassHeading', event.webkitCompassHeading);
 
-	    oDebug.heading = `${compassdir}`;
-
-
-
-
-	    const compassHousing = document.body.querySelector('.bar');
-	    console.log('event.webkitCompassHeading', event.webkitCompassHeading);
-
-	   // let accuracy = event.webkitCompassAccuracy;
-	    var heading = (270 - event.alpha) * -1;
-	    // heading -= window.orientation;
-	    if(heading < 0) {
-	    	heading += 360;
-	    }
-	    console.log('heading', heading);
-	    console.log('event.webkitCompassAccuracy', event.webkitCompassAccuracy);
-	    // transform
-	    // compassHousing.style.webkitTransition = 'all 0.03s ease-in-out';
-	    // rotate the compass
-	    compassHousing.style.webkitTransform = 'rotateZ(' + heading + 'deg)';
+	   // // let accuracy = event.webkitCompassAccuracy;
+	   //  var heading = (270 - event.alpha) * -1;
+	   //  // heading -= window.orientation;
+	   //  if(heading < 0) {
+	   //  	heading += 360;
+	   //  }
+	   //  console.log('heading', heading);
+	   //  console.log('event.webkitCompassAccuracy', event.webkitCompassAccuracy);
+	   //  // transform
+	   //  // compassHousing.style.webkitTransition = 'all 0.03s ease-in-out';
+	   //  // rotate the compass
+	   //  compassHousing.style.webkitTransform = 'rotateZ(' + heading + 'deg)';
 	    // previousHeading = heading;
+
+	    oDebug.heading = `${heading}`;
+	    heading = event.alpha * Math.PI / 180;
 
 
 	}, false);
@@ -250,13 +248,18 @@ window.initMap = () => {
 
 
 function update() {
-	// console.log('Update');
+	ctx.clearRect(0, 0, canvas.width, canvas.height);	
 
-	
+	ctx.save();
 
-	// ctx.fillStyle = Math.floor(Math.random() * 0xFFFFFF);
-	// ctx.fillRect(Math.random() * 100, Math.random() * 100, 100, 100);
-	
+	const w = 5;
+	const h = 50;
+	ctx.translate(point.x, point.y);
+	ctx.rotate(heading);
+	ctx.fillStyle = 'rgba(255, 128, 0, 1)';
+	ctx.fillRect(-w/2, -h, w, h);
+
+	ctx.restore();
 }
 
 
