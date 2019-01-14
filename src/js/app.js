@@ -1,10 +1,10 @@
 import '../scss/global.scss';
 import debugPolyfill from './debug/debugPolyfill';
 import alfrid, { GL } from 'alfrid';
-import AssetsLoader from 'assets-loader';
-import Settings from './Settings';
-import assets from './asset-list';
-import Assets from './Assets';
+
+import GoogleMapsLoader from 'google-maps';
+
+const GOOGLE_MAP_API_KEY = 'AIzaSyBqCqukoHGzJjI7Sqo41Nw9XT0AhnGoVDw';
 
 
 import { fromLatLngToPixel } from './utils';
@@ -211,4 +211,14 @@ function update() {
 
 
 function _init() {
+	GoogleMapsLoader.KEY = GOOGLE_MAP_API_KEY;
+	const el = document.getElementById('map');
+
+	GoogleMapsLoader.load(function(google) {
+	    new google.maps.Map(el, {
+	    	center: {lat: 51.528111499999994, lng: -0.0859945},
+	    	zoom
+	    });
+	});
+
 }
