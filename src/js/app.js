@@ -6,8 +6,8 @@ import Settings from './Settings';
 import assets from './asset-list';
 import Assets from './Assets';
 
-import Capture from './utils/Capture';
-import addControls from './debug/addControls';
+
+import { fromLatLngToPixel } from './utils';
 
 if(document.body) {
 	_init();
@@ -68,6 +68,7 @@ let point = {
 let heading = 0;
 let headingOffset = 0;
 let hasCalibred = false;
+let hasLoggedInit = false;
 
 window.initMap = () => {
 	console.log('init Map');
@@ -87,7 +88,6 @@ window.initMap = () => {
 	});
 
 
-
 	markerTarget1 = new google.maps.Marker({
 		position: target1,
 		map: map,
@@ -98,11 +98,8 @@ window.initMap = () => {
 	markerTarget2 = new google.maps.Marker({
 		position: target2,
 		map: map,
-		title: 'Target 1'
+		title: 'Target 2'
 	});
-
-
-	console.log('markerTarget1', markerTarget1);
 
 
 	const updateLocation = () => {
@@ -149,27 +146,7 @@ window.initMap = () => {
 		  		oDebug.dist1 = `${distance(myLatlng, target1)}`;
 		  		oDebug.dist2 = `${distance(myLatlng, target2)}`;
 
-
-		  		const fromLatLngToPixel = (position) => {
-		  			var scale = Math.pow(2, map.getZoom());
-		  			var proj = map.getProjection();
-		  			var bounds = map.getBounds();
-
-		  			var nw = proj.fromLatLngToPoint(
-		  				new google.maps.LatLng(
-		  					bounds.getNorthEast().lat(),
-		  					bounds.getSouthWest().lng()
-		  				));
-		  			var point = proj.fromLatLngToPoint(position);
-
-		  			return new google.maps.Point(
-		  				Math.floor((point.x - nw.x) * scale),
-		  				Math.floor((point.y - nw.y) * scale));
-
-		  			// return point;
-		  		};
-
-		  		point = fromLatLngToPixel(marker.position);
+		  		point = fromLatLngToPixel(map, marker.position);
 		  		// console.log('Point', point);
 		  	} );
 		}
@@ -198,31 +175,19 @@ window.initMap = () => {
 
 	alfrid.Scheduler.addEF(update);
 
-	window.addEventListener('deviceorientation', function(event) {
+	window.addEventListener('deviceorientationabsolute', function(event) {
 
-		console.log('on Orientation:', event);
+		// console.log('on Orientation:', event);
 
+		if(!hasLoggedInit) {
+			console.log(event.absolute, event.alpha);
+			hasLoggedInit = true;
+		}
 
-	   //  const compassHousing = document.body.querySelector('.bar');
-	   //  console.log('event.webkitCompassHeading', event.webkitCompassHeading);
-
-	   // // let accuracy = event.webkitCompassAccuracy;
-	   //  var heading = (270 - event.alpha) * -1;
-	   //  // heading -= window.orientation;
-	   //  if(heading < 0) {
-	   //  	heading += 360;
-	   //  }
-	   //  console.log('heading', heading);
-	   //  console.log('event.webkitCompassAccuracy', event.webkitCompassAccuracy);
-	   //  // transform
-	   //  // compassHousing.style.webkitTransition = 'all 0.03s ease-in-out';
-	   //  // rotate the compass
-	   //  compassHousing.style.webkitTransform = 'rotateZ(' + heading + 'deg)';
-	    // previousHeading = heading;
 
 	    oDebug.heading = `${heading}`;
 	    oDebug.alpha = `${event.alpha}`;
-	    heading = -event.alpha * Math.PI / 180 + Math.PI/2 - headingOffset;
+	    heading = -event.alpha * Math.PI / 180 - headingOffset + Math.PI/2;
 
 
 	}, false);
