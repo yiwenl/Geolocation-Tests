@@ -17,7 +17,7 @@ if(document.body) {
 }
 
 const zoom = 16;
-let map, marker, markerTarget1, markerTarget2;
+let map, marker, markerTarget1, markerTarget2, markerStart;
  
 let target1 = {
 	lat:51.52864213850285,
@@ -137,9 +137,15 @@ function _initMap() {
 
 	const tmp = {
 		start:() => {
+			markerStart = new google.maps.Marker({
+				position: locCurr,
+				map: map,
+				title: 'Target 1'
+			});
 			HeadingCalibre.start(locCurr);
 		},
 		stop:() => {
+			markerStart.setMap(null);
 			HeadingCalibre.stop(locCurr);
 		}
 	}
