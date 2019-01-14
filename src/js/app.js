@@ -17,7 +17,7 @@ if(document.body) {
 
 const zoom = 16;
 const TILE_SIZE = 256;
-let map, marker, markerTarget1, markerTarget2;
+let map, marker, markerTarget1, markerTarget2, markerNorth;
  
 let target1 = {
 	lat:51.52864213850285,
@@ -34,7 +34,8 @@ const oDebug = {
 	longitude:'0',
 	dist1:'0',
 	dist2:'0',
-	heading:'null'
+	heading:'null',
+	alpha:'0'
 }
 
 const toRadians = (v) => {
@@ -66,6 +67,7 @@ let point = {
 }
 let heading = 0;
 let headingOffset = 0;
+let hasCalibred = false;
 
 window.initMap = () => {
 	console.log('init Map');
@@ -127,6 +129,22 @@ window.initMap = () => {
 		  			title: 'Me'
 		  		});
 
+		  		if(!hasCalibred ) {
+
+		  			const latlngNorth = {
+		  				lat: o.coords.latitude + 0.0005, 
+		  				lng: o.coords.longitude
+		  			};
+
+		  			markerNorth = new google.maps.Marker({
+		  				position: latlngNorth,
+		  				map: map,
+		  				title: 'Me'
+		  			});
+
+		  			hasCalibred = true;
+		  		}
+
 
 		  		oDebug.dist1 = `${distance(myLatlng, target1)}`;
 		  		oDebug.dist2 = `${distance(myLatlng, target2)}`;
@@ -162,6 +180,7 @@ window.initMap = () => {
 	const tmp = {
 		callibre:() => {
 			headingOffset = heading;
+			markerNorth.setMap(null);
 		}
 	}
 
@@ -172,6 +191,7 @@ window.initMap = () => {
 		gui.add(oDebug, 'dist1').listen();
 		gui.add(oDebug, 'dist2').listen();
 		gui.add(oDebug, 'heading').listen();
+		gui.add(oDebug, 'alpha').listen();
 		gui.add(tmp, 'callibre');
 	}, 200);
 
@@ -179,6 +199,8 @@ window.initMap = () => {
 	alfrid.Scheduler.addEF(update);
 
 	window.addEventListener('deviceorientation', function(event) {
+
+		console.log('on Orientation:', event);
 
 
 	   //  const compassHousing = document.body.querySelector('.bar');
@@ -199,6 +221,7 @@ window.initMap = () => {
 	    // previousHeading = heading;
 
 	    oDebug.heading = `${heading}`;
+	    oDebug.alpha = `${event.alpha}`;
 	    heading = -event.alpha * Math.PI / 180 + Math.PI/2 - headingOffset;
 
 
