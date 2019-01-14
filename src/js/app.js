@@ -240,7 +240,7 @@ window.initMap = () => {
 	    // previousHeading = heading;
 
 	    oDebug.heading = `${heading}`;
-	    heading = event.alpha * Math.PI / 180;
+	    heading = -event.alpha * Math.PI / 180;
 
 
 	}, false);
