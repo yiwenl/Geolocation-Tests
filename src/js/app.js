@@ -36,7 +36,8 @@ const oDebug = {
 	dist1:'0',
 	dist2:'0',
 	dist:'0',
-	heading:'null',
+	heading:'0',
+	headingLocal:'0',
 	alpha:'0',
 	headingOffset:'0'
 }
@@ -48,6 +49,7 @@ let point = {
 	x:0, y:0
 }
 let heading = 0;
+let headingLocal = 0;
 let headingOffset = 0;
 let headingGeo = 0;
 let hasLoggedInit = false;
@@ -195,6 +197,11 @@ function _initMap() {
 
 
 	}, false);
+
+	window.addEventListener('deviceorientation', function(event) {
+	    headingLocal = -event.alpha * Math.PI / 180;
+
+	}, false);
 }
 
 
@@ -222,12 +229,12 @@ function update() {
 	ctx.fillRect(-w/2, -h, w, h);
 	ctx.restore();
 
-	// w = 2;
-	// ctx.save();
-	// ctx.rotate(headingGeo);
-	// ctx.fillStyle = 'rgba(0, 180, 128, 1)';
-	// ctx.fillRect(-w/2, -h, w, h);
-	// ctx.restore();
+	w = 2;
+	ctx.save();
+	ctx.rotate(headingLocal);
+	ctx.fillStyle = 'rgba(20, 80, 28, 1)';
+	ctx.fillRect(-w/2, -h, w, h);
+	ctx.restore();
 
 	ctx.restore();
 
