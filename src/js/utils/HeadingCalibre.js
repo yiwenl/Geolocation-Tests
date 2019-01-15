@@ -24,7 +24,6 @@ class HeadingCalibre {
 		}
 
 		this._heading = heading;
-		console.log('update :', this._heading);
 		this._headings.push(this._heading);
 	}
 
@@ -40,17 +39,12 @@ class HeadingCalibre {
 
 		sumHeading /= this._headings.length;
 
-		console.log(this._locStart, this._locEnd);
-
-		console.log('sumHeading', sumHeading);
-
 		let headingGeo = directionLatLng(this._locEnd, this._locStart) + Math.PI/2;	
 		if(headingGeo > Math.PI * 2) {
 			headingGeo -= Math.PI * 2;
 		}
-		console.log('headingGeo', headingGeo * 180 / Math.PI);
+		
 		this._offset = (headingGeo - sumHeading);
-		console.log(this._offset * 180 / Math.PI);
 
 	}
 
