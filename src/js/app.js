@@ -182,7 +182,7 @@ function _initMap() {
 	alfrid.Scheduler.addEF(update);
 
 	window.addEventListener('deviceorientationabsolute', function(event) {
-
+		console.log('on deviceorientation absolute');
 		if(!hasLoggedInit) {
 			console.log(event.absolute, event.alpha);
 			hasLoggedInit = true;
@@ -199,6 +199,7 @@ function _initMap() {
 	}, false);
 
 	window.addEventListener('deviceorientation', function(event) {
+		console.log('on deviceorientation');
 	    headingLocal = -event.alpha * Math.PI / 180;
 
 	}, false);
@@ -217,7 +218,7 @@ function update() {
 
 	ctx.save();
 	// console.log('angle :', heading, HeadingCalibre.offset);
-	ctx.rotate(heading + HeadingCalibre.offset);
+	ctx.rotate(headingLocal + HeadingCalibre.offset);
 	ctx.fillStyle = 'rgba(255, 200, 0, 1)';
 	ctx.fillRect(-w/2, -h, w, h);
 	ctx.restore();
