@@ -53,6 +53,7 @@ let headingLocal = 0;
 let headingOffset = 0;
 let headingGeo = 0;
 let hasLoggedInit = false;
+let hasCalibrated = false;
 
 let locPrev = {lat: 51.528111499999994, lng: -0.0859945};
 let locCurr = {lat: 51.528111499999994, lng: -0.0859945};
@@ -142,40 +143,14 @@ function _initMap() {
 
 	setInterval(updateLocation, 1000);
 
-	const tmp = {
-		start:() => {
-			markerStart = new google.maps.Marker({
-				position: locCurr,
-				map: map,
-				title: 'Target 1'
-			});
-			HeadingCalibre.start({
-				lat:locCurr.lat,
-				lng:locCurr.lng,
-			});
-		},
-		stop:() => {
-			markerStart.setMap(null);
-			HeadingCalibre.stop({
-				lat:locCurr.lat,
-				lng:locCurr.lng,
-			});
-		}
-	}
 
 
 	setTimeout(()=> {
-		// gui.add(oDebug, 'latitude').listen();
-		// gui.add(oDebug, 'longitude').listen();
-		// gui.add(oDebug, 'dist1').listen();
-		// gui.add(oDebug, 'dist2').listen();
-		gui.add(oDebug, 'heading').listen();
-		gui.add(oDebug, 'alpha').listen();
-		gui.add(oDebug, 'headingOffset').listen();
-		gui.add(oDebug, 'dist').listen();
-		gui.add(tmp, 'start');
-		gui.add(tmp, 'stop');
-		gui.add(pathTracker, 'clear');
+		gui.add(oDebug, 'latitude').listen();
+		gui.add(oDebug, 'longitude').listen();
+		gui.add(oDebug, 'dist1').listen();
+		gui.add(oDebug, 'dist2').listen();
+		gui.add(pathTracker, 'clear').name('Clear tracks');
 	}, 200);
 
 
@@ -194,8 +169,6 @@ function _initMap() {
 	    if(!GL.isMobile) {
 	    	heading = -0.5;
 	    }
-
-
 	}, false);
 
 	window.addEventListener('deviceorientation', function(event) {
@@ -203,6 +176,34 @@ function _initMap() {
 	    headingLocal = -event.alpha * Math.PI / 180;
 
 	}, false);
+
+
+	const btnCalibre = document.body.querySelector('.btn-calibrate');
+	btnCalibre.addEventListener('click', (e)=> {
+
+		if(!hasCalibrated) {
+			btnCalibre.innerHTML = 'END';
+			hasCalibrated = true;
+
+			markerStart = new google.maps.Marker({
+				position: locCurr,
+				map: map,
+				title: 'Target 1'
+			});
+			HeadingCalibre.start({
+				lat:locCurr.lat,
+				lng:locCurr.lng,
+			});
+		} else {
+			markerStart.setMap(null);
+			HeadingCalibre.stop({
+				lat:locCurr.lat,
+				lng:locCurr.lng,
+			});
+
+			document.body.classList.add('hasCalibrated');
+		}
+	});
 }
 
 

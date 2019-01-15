@@ -16,21 +16,15 @@ html {
 	text-size-adjust: none;
 }
 
-h1,h2,h3,h4,text,p {
+h1,h2,h3,h4,text,p,button {
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-webkit-font-smoothing: antialiased;
 	font-family: 'Open Sans', sans-serif;
 }
 
-.Main-Canvas {
-	user-select:none;
 
-	opacity: 1;
-	transition: opacity .5s ease-out .25s;
-
-	.isLoading & {
-		opacity: 0;
-	}
+button {
+	outline: none;
 }
 
 
@@ -49,74 +43,32 @@ h1,h2,h3,h4,text,p {
 	height: 100%;
 }
 
-
-.compass {
+.ui-container {
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
 	position: fixed;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 100%;
-
-	z-index: 9999;
-	background:rgba(0, 0, 0, .1);
-
-	display: flex;
-	align-items: center;
-	justify-content: center;
-}
-
-.bar {
-	width:20px;
-	height:100px;
-
-	margin-left: -10px;
-	margin-top: -50px;
-	background: rgba(255, 255, 255, 1);
-	display: none;
-}
-
-.container {
-	width: 100%;
-	height: 100%;
-	position: fixed;;
-	top: 0;
-	left: 0;
-
-	display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.Message {
-	position: absolute;
 	z-index: 999;
-	width: 100%;
-	top: calc(50% - 50px);
-	text-align: center;
-	letter-spacing: 11px;
-	color:white;
 
-	opacity: 0;
-	transition:opacity .5s ease-out, letter-spacing .5s ease-out;
+	display: flex;
+	justify-content: center;
+	background-color: rgba(0, 0, 0, .25);
 
-	.isLoading & {
-		letter-spacing: 10px;
-		opacity: 1;
+	transition: opacity .5s ease-out;
+
+	.hasCalibrated & {
+		opacity: 0;
 	}
 }
 
-.Loading-Bar {
+
+.btn-calibrate {
 	position: absolute;
-	z-index: 998;
-	width: 0%;
-	height:1px;
-	top:50%;
-	background:rgba(255, 255, 255, .5);
-	opacity: 0;
-
-	transition:width .5s ease-out, opacity .5s ease-out;
-
-	.isLoading & {
-		opacity: 1;
-	}
+	width: 200px;
+	height: 40px;
+	bottom: 15%;
+	background: white;
+	font-size:16px;
+	border-radius: 18px;
 }
