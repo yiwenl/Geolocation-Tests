@@ -155,7 +155,7 @@ function _initMap() {
 			});
 		},
 		stop:() => {
-			// markerStart.setMap(null);
+			markerStart.setMap(null);
 			HeadingCalibre.stop({
 				lat:locCurr.lat,
 				lng:locCurr.lng,
