@@ -49,7 +49,7 @@ let point = {
 	x:0, y:0
 }
 let heading = 0;
-let headingLocal = 0;
+let headingLocal = 1.7;
 let headingOffset = 0;
 let headingGeo = 0;
 let hasLoggedInit = false;
@@ -111,7 +111,8 @@ function _initMap() {
 		  		if(dist > 5) {
 		  			headingGeo = directionLatLng(locCurr, locPrev) + Math.PI/2;	
 		  		}
-		  		HeadingCalibre.update(heading);
+		  		console.log('headingLocal', headingLocal);
+		  		HeadingCalibre.update(headingLocal);
 
 		  		pathTracker.add(new google.maps.LatLng(myLatlng.lat, myLatlng.lng));
 
@@ -174,6 +175,9 @@ function _initMap() {
 	window.addEventListener('deviceorientation', function(event) {
 		console.log('on deviceorientation');
 	    headingLocal = -event.alpha * Math.PI / 180;
+	    if(!GL.isMobile) {
+	    	headingLocal = 0.5;
+	    }
 
 	}, false);
 
