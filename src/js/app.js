@@ -217,7 +217,7 @@ function update() {
 
 	w = 4;
 	ctx.save();
-	ctx.rotate(headingGeo);
+	ctx.rotate(heading);
 	ctx.fillStyle = 'rgba(0, 128, 200, 1)';
 	ctx.fillRect(-w/2, -h, w, h);
 	ctx.restore();
