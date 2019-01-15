@@ -238,7 +238,8 @@ function update() {
 
 	ctx.restore();
 
-	pathTracker.update(heading);
+	// pathTracker.update(heading);
+	pathTracker.update(headingLocal);
 
 	oDebug.headingOffset = `${HeadingCalibre.offset}`;
 }
