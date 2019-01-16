@@ -1,5 +1,5 @@
 // SceneAR.js
-
+import alfrid from 'alfrid';
 import Config from './Config';
 import GLTFLoader from 'three-gltf-loader';
 
@@ -40,7 +40,7 @@ class SceneAR {
 
 
 		this._heading = 0;
-		this.headingDiff = 0.1;
+		this._headingDiff = new alfrid.EaseNumber(0, 1);
 
 		XR.run({canvas:this.canvas});
 	}
@@ -76,6 +76,7 @@ class SceneAR {
 		// scene.add( this.ball );
 		// scene.add( this.ball2 );
 
+		const scaleArrow = 0.25;
 
 		//	load model : 
 		let loader = new GLTFLoader();
@@ -85,12 +86,15 @@ class SceneAR {
 		        // called when the resource is loaded
 
 		        this._arrows = gltf.scene;
+		        this._arrows.scale.set(scaleArrow, scaleArrow, scaleArrow);
 		        const meshes = this._arrows.children;
 		        const material = new THREE.MeshStandardMaterial({
 		        	roughness:1.0,
 		        	metalness:0.5,
 		        	color:0xFF6600
 		        });
+
+		        console.log('this._arrows', this._arrows.scale);
 
 		        meshes.forEach( mesh => {
 		        	mesh.material = material;
@@ -114,6 +118,7 @@ class SceneAR {
 			        // called when the resource is loaded
 
 			        this._arrows1 = gltf.scene;
+			        this._arrows1.scale.set(scaleArrow, scaleArrow, scaleArrow);
 			        const meshes = this._arrows1.children;
 			        const material = new THREE.MeshStandardMaterial({
 			        	roughness:1.0,
@@ -156,7 +161,6 @@ class SceneAR {
 		}
 		
 
-
 		let heading2 = this._heading + this.headingDiff;
 		front.x = 0;
 		front.y = 0;
@@ -170,6 +174,15 @@ class SceneAR {
 			this._arrows1.rotation.y = -heading2;
 		}
 
+	}
+
+
+	get headingDiff() {
+		return this._headingDiff.value;
+	}
+
+	set headingDiff(mValue) {
+		this._headingDiff.value = mValue;
 	}
 
 }

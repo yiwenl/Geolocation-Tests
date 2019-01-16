@@ -99,7 +99,6 @@ function _initMap() {
 		  		oDebug.latitude = o.coords.latitude.toString();
 		  		oDebug.longitude = o.coords.longitude.toString();
 
-		  		if(marker) { marker.setMap(null);	}
 
 		  		const myLatlng = {
 		  			lat: o.coords.latitude, 
@@ -112,11 +111,18 @@ function _initMap() {
 
 		  		let dist = distanceLatLng(locPrev, locCurr)
 
-		  		marker = new google.maps.Marker({
-		  			position: myLatlng,
-		  			map: map,
-		  			title: 'Me'
-		  		});
+		  		if(!marker) {
+		  			marker = new google.maps.Marker({
+		  				position: myLatlng,
+		  				map: map,
+		  				title: 'Me'
+		  			});	
+		  		} else {
+		  			const loc = new google.maps.LatLng(myLatlng);
+		  			marker.setPosition(loc);
+		  		}
+
+		  		
 
 		  		// oDebug.dist = `${dist}`;
 		  		oDebug.dist1 = `${distanceLatLng(myLatlng, target1)}`;
@@ -144,7 +150,7 @@ function _initMap() {
 	}
 
 
-	setInterval(updateLocation, 1000);
+	setInterval(updateLocation, Config.geolocationInterval);
 
 	const oControls = {
 		toggleMinified:() => {
@@ -228,10 +234,14 @@ function _initMap() {
 
 
 	console.log('localhost ? ', window.location.href.indexOf('localhost') > -1);
-	if(window.location.href.indexOf('localhost') > -1) {
-		document.body.classList.add('hasCalibrated');
-		oControls.toggleMinified();
-	}
+	// if(window.location.href.indexOf('localhost') > -1) {
+	// 	document.body.classList.add('hasCalibrated');
+	// 	oControls.toggleMinified();
+	// }
+}
+
+function loop() {
+
 }
 
 

@@ -10,6 +10,7 @@ class DebugCanvas {
 
 		this.canvas = document.createElement("canvas");
 		this.canvas.width = window.innerWidth;
+		this.canvas.height = window.innerHeight;
 		this.canvas.className = 'canvas-overlay';
 		this.ctx = this.canvas.getContext('2d');
 		document.body.appendChild(this.canvas);
