@@ -5,11 +5,12 @@ import alfrid, { GL } from 'alfrid';
 import GoogleMapsLoader from 'google-maps';
 import PathTracker from './utils/PathTracker';
 import HeadingCalibre from './utils/HeadingCalibre';
+import HeadingCalibrate from './utils/HeadingCalibrate';
 
 const GOOGLE_MAP_API_KEY = 'AIzaSyBqCqukoHGzJjI7Sqo41Nw9XT0AhnGoVDw';
 
 
-import { fromLatLngToPixel, distanceLatLng, directionLatLng } from './utils';
+import { fromLatLngToPixel, distanceLatLng, directionLatLng, directionMapPoint } from './utils';
 
 if(document.body) {
 	_init();
@@ -39,7 +40,9 @@ const oDebug = {
 	heading:'0',
 	headingLocal:'0',
 	alpha:'0',
-	headingOffset:'0'
+	headingOffset:'0',
+	headingOffsetNew:'0',
+
 }
 
 
@@ -48,18 +51,19 @@ let canvas, ctx, projection, pathTracker;
 let point = {
 	x:0, y:0
 }
+let target = {
+	x:0, y:0
+}
 let heading = 0;
-let headingLocal = 1.7;
+let headingLocal = 1.;
 let headingOffset = 0;
-let headingGeo = 0;
+let headingTarget = 0;
 let hasLoggedInit = false;
 let hasCalibrated = false;
 
 let locPrev = {lat: 51.528111499999994, lng: -0.0859945};
 let locCurr = {lat: 51.528111499999994, lng: -0.0859945};
 
-let pointCurr = {x:0, y:0};
-let pointPrev = {x:0, y:0};
 let _fake = 0;
 
 function _initMap() {
@@ -80,11 +84,11 @@ function _initMap() {
 	});
 
 
-	markerTarget2 = new google.maps.Marker({
-		position: target2,
-		map: map,
-		title: 'Target 2'
-	});
+	// markerTarget2 = new google.maps.Marker({
+	// 	position: target2,
+	// 	map: map,
+	// 	title: 'Target 2'
+	// });
 
 
 	const updateLocation = () => {
@@ -98,7 +102,7 @@ function _initMap() {
 		  		if(marker) { marker.setMap(null);	}
 
 		  		const myLatlng = {
-		  			lat: o.coords.latitude + _fake, 
+		  			lat: o.coords.latitude, 
 		  			lng: o.coords.longitude + _fake
 		  		};
 		  		locPrev.lat = locCurr.lat;
@@ -108,10 +112,6 @@ function _initMap() {
 
 		  		let dist = distanceLatLng(locPrev, locCurr)
 
-		  		if(dist > 5) {
-		  			headingGeo = directionLatLng(locCurr, locPrev) + Math.PI/2;	
-		  		}
-		  		console.log('headingLocal', headingLocal);
 		  		HeadingCalibre.update(headingLocal);
 
 		  		pathTracker.add(new google.maps.LatLng(myLatlng.lat, myLatlng.lng));
@@ -122,22 +122,24 @@ function _initMap() {
 		  			title: 'Me'
 		  		});
 
-		  		oDebug.dist = `${dist}`;
+		  		// oDebug.dist = `${dist}`;
 		  		oDebug.dist1 = `${distanceLatLng(myLatlng, target1)}`;
-		  		oDebug.dist2 = `${distanceLatLng(myLatlng, target2)}`;
+		  		// oDebug.dist2 = `${distanceLatLng(myLatlng, target2)}`;
 
+		  		target = fromLatLngToPixel(map, markerTarget1.position);
 		  		point = fromLatLngToPixel(map, marker.position);
 
-		  		pointPrev.x = pointCurr.x;
-		  		pointPrev.y = pointCurr.y;
 
-		  		pointCurr.x = point.x;
-		  		pointCurr.y = point.y;
+		  		//	get heading to target
+		  		headingTarget = directionMapPoint(point, target) + Math.PI/2;
+
 		  	} );
 		}
 
 		if(!GL.isMobile) {
-			_fake += 0.00005;
+			// _fake += 0.00005;
+			const t = new Date().getTime() * 0.05;
+			_fake = Math.sin(t) * 0.0015;
 		}
 	}
 
@@ -147,10 +149,13 @@ function _initMap() {
 
 
 	setTimeout(()=> {
-		gui.add(oDebug, 'latitude').listen();
-		gui.add(oDebug, 'longitude').listen();
-		gui.add(oDebug, 'dist1').listen();
-		gui.add(oDebug, 'dist2').listen();
+		// gui.add(oDebug, 'latitude').listen();
+		// gui.add(oDebug, 'longitude').listen();
+		gui.add(oDebug, 'dist1').name('Distance').listen();
+		gui.add(oDebug, 'headingOffset').listen();
+		gui.add(oDebug, 'headingOffsetNew').listen();
+		// gui.add(oDebug, 'dist2').listen();
+		gui.add(HeadingCalibrate, 'stateString').listen();
 		gui.add(pathTracker, 'clear').name('Clear tracks');
 	}, 200);
 
@@ -189,14 +194,36 @@ function _initMap() {
 			btnCalibre.innerHTML = 'END';
 			hasCalibrated = true;
 
-			markerStart = new google.maps.Marker({
-				position: locCurr,
-				map: map,
-				title: 'Target 1'
-			});
+			// markerStart = new google.maps.Marker({
+			// 	position: locCurr,
+			// 	map: map,
+			// 	title: 'Target 1'
+			// });
 			HeadingCalibre.start({
 				lat:locCurr.lat,
 				lng:locCurr.lng,
+			});
+
+
+			HeadingCalibrate.once('onStart', loc => {
+				markerStart = new google.maps.Marker({
+					position: loc,
+					map: map,
+					title: 'Target 1'
+				});
+			});
+
+
+			HeadingCalibrate.on('onProgress', percent => {
+				console.log('Calibrating progress :', percent);
+			})
+
+			HeadingCalibrate.start()
+			.then((offset)=> {
+				console.log('Heading Offset:', offset, HeadingCalibrate.offset);
+				oDebug.headingOffsetNew = `${offset}`;
+			}, (e)=> {
+				console.log('Error', e);
 			});
 		} else {
 			markerStart.setMap(null);
@@ -204,7 +231,7 @@ function _initMap() {
 				lat:locCurr.lat,
 				lng:locCurr.lng,
 			});
-
+			oDebug.headingOffset = `${HeadingCalibre.offset}`;
 			document.body.classList.add('hasCalibrated');
 		}
 	});
@@ -212,7 +239,6 @@ function _initMap() {
 
 
 function update() {
-	// console.log('HeadingCalibre.offset', HeadingCalibre.offset);
 	ctx.clearRect(0, 0, canvas.width, canvas.height);	
 
 	ctx.save();
@@ -230,7 +256,8 @@ function update() {
 
 	w = 4;
 	ctx.save();
-	ctx.rotate(heading);
+	// ctx.rotate(headingLocal + HeadingCalibre.offset);
+	ctx.rotate(headingTarget);
 	ctx.fillStyle = 'rgba(0, 128, 200, 1)';
 	ctx.fillRect(-w/2, -h, w, h);
 	ctx.restore();

@@ -1,6 +1,5 @@
 // HeadingCalibre.js
 import { fromLatLngToPixel, distanceLatLng, directionLatLng } from './';
-import { GL } from 'alfrid';
 
 class HeadingCalibre {
 
