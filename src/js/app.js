@@ -4,8 +4,9 @@ import alfrid, { GL } from 'alfrid';
 
 import GoogleMapsLoader from 'google-maps';
 import PathTracker from './utils/PathTracker';
-// import HeadingCalibre from './utils/HeadingCalibre';
 import HeadingCalibrate from './utils/HeadingCalibrate';
+import DebugInfo from './debug/DebugInfo';
+import DebugCanvas from './debug/DebugCanvas';
 import SceneAR from './SceneAR';
 import Config from './Config';
 import * as THREE from 'three';
@@ -51,7 +52,7 @@ const oDebug = {
 
 
 
-let canvas, ctx, projection, pathTracker, sceneAR;
+let sceneAR, debugCanvas;
 let point = {
 	x:0, y:0
 }
@@ -62,7 +63,6 @@ let heading = 0;
 let headingLocal = 1.;
 let headingOffset = 0;
 let headingTarget = 0;
-let hasLoggedInit = false;
 let hasCalibrated = false;
 
 let locPrev = {lat: 51.528111499999994, lng: -0.0859945};
@@ -84,29 +84,13 @@ function _initMap() {
 	}
 
 
-	canvas = document.createElement("canvas");
-	canvas.className = 'canvas-overlay';
-	canvas.width = window.innerWidth;
-	canvas.height = window.innerHeight;
-
-	document.body.appendChild(canvas);
-	ctx = canvas.getContext('2d');
-
-	pathTracker = new PathTracker(canvas, map);
+	debugCanvas = new DebugCanvas();
 
 	markerTarget1 = new google.maps.Marker({
 		position: target1,
 		map: map,
 		title: 'Target 1'
 	});
-
-
-	// markerTarget2 = new google.maps.Marker({
-	// 	position: target2,
-	// 	map: map,
-	// 	title: 'Target 2'
-	// });
-
 
 	const updateLocation = () => {
 
@@ -129,8 +113,6 @@ function _initMap() {
 
 		  		let dist = distanceLatLng(locPrev, locCurr)
 
-		  		pathTracker.add(new google.maps.LatLng(myLatlng.lat, myLatlng.lng));
-
 		  		marker = new google.maps.Marker({
 		  			position: myLatlng,
 		  			map: map,
@@ -143,6 +125,7 @@ function _initMap() {
 
 		  		target = fromLatLngToPixel(map, markerTarget1.position);
 		  		point = fromLatLngToPixel(map, marker.position);
+		  		DebugInfo.point = point;
 
 
 		  		//	get heading to target
@@ -169,19 +152,17 @@ function _initMap() {
 			if(document.body.classList.contains('minified')) {
 				document.body.classList.remove('minified');
 				mapDiv.style.marginTop = '0px';
-				canvas.height = window.innerHeight;
-				canvas.style.marginTop = '0px';
+				debugCanvas.canvas.height = window.innerHeight;
+				debugCanvas.canvas.style.marginTop = '0px';
 			} else {
 				document.body.classList.add('minified');
 				const top = Math.floor(window.innerHeight * (1.0 - Config.minifiedHeight));
 				mapDiv.style.marginTop = `${top}px`;
-				canvas.height = Math.floor(window.innerHeight * Config.minifiedHeight);
-				canvas.style.marginTop = `${top}px`;
+				debugCanvas.canvas.height = Math.floor(window.innerHeight * Config.minifiedHeight);
+				debugCanvas.canvas.style.marginTop = `${top}px`;
 			}
 
 			google.maps.event.trigger(map, 'resize')
-
-			//	
 		}
 	}
 
@@ -193,12 +174,9 @@ function _initMap() {
 		gui.add(oDebug, 'headingOffset').listen();
 		// gui.add(oDebug, 'dist2').listen();
 		gui.add(HeadingCalibrate, 'stateString').listen();
-		gui.add(pathTracker, 'clear').name('Clear tracks');
 		gui.add(oControls, 'toggleMinified');
 	}, 200);
 
-
-	alfrid.Scheduler.addEF(update);
 
 	window.addEventListener('deviceorientation', function(event) {
 		console.log('on deviceorientation');
@@ -206,6 +184,8 @@ function _initMap() {
 	    if(!GL.isMobile) {
 	    	headingLocal = 0.5;
 	    }
+
+	    DebugInfo.headingLocal = headingLocal;
 
 	}, false);
 
@@ -235,7 +215,8 @@ function _initMap() {
 				console.log('Heading Offset:', offset, HeadingCalibrate.offset);
 				oDebug.headingOffset = `${HeadingCalibrate.offset}`;
 				document.body.classList.add('hasCalibrated');
-
+				// debugCanvas.headingOffset = HeadingCalibrate.offset;
+				DebugInfo.headingOffset = HeadingCalibrate.offset;
 				sceneAR.placeObject();
 			}, (e)=> {
 				console.log('Error', e);
@@ -252,34 +233,6 @@ function _initMap() {
 	}
 }
 
-
-function update() {
-	ctx.clearRect(0, 0, canvas.width, canvas.height);	
-
-	ctx.save();
-
-	let w = 8;
-	const h = 50;
-	ctx.translate(point.x, point.y);
-
-	ctx.save();
-	ctx.rotate(headingLocal + HeadingCalibrate.offset);
-	ctx.fillStyle = 'rgba(255, 200, 0, 1)';
-	ctx.fillRect(-w/2, -h, w, h);
-	ctx.restore();
-
-	w = 2;
-	ctx.save();
-	ctx.rotate(headingLocal);
-	ctx.fillStyle = 'rgba(20, 80, 28, 1)';
-	ctx.fillRect(-w/2, -h, w, h);
-	ctx.restore();
-
-	ctx.restore();
-
-	// pathTracker.update(heading);
-	pathTracker.update(headingLocal);
-}
 
 
 function _init() {
