@@ -78,6 +78,7 @@ class HeadingCalibrate extends EventEmitter {
 	_capture() {
 		let count = 0;
 		let heading = 0;
+		const totalSteps = 20;
 
 		return new Promise((resolve, reject) => {
 
@@ -85,11 +86,11 @@ class HeadingCalibrate extends EventEmitter {
 				heading += this._heading;
 				count ++;
 
-				this.emit('onProgress', count / 10);
+				this.emit('onProgress', count / totalSteps);
 
-				if(count >= 10) {
+				if(count >= totalSteps) {
 					clearInterval(interval);
-					resolve(heading/10);
+					resolve(heading/totalSteps);
 				}
 
 				
