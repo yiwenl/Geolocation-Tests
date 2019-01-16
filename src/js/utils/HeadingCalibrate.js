@@ -4,6 +4,7 @@ import { fromLatLngToPixel, distanceLatLng, directionLatLng } from './';
 import getGeolocation from './getGeolocation';
 import { GL } from 'alfrid';
 import EventEmitter from 'events';
+import Config from '../Config';
 
 class HeadingCalibrate extends EventEmitter {
 
@@ -78,7 +79,7 @@ class HeadingCalibrate extends EventEmitter {
 	_capture() {
 		let count = 0;
 		let heading = 0;
-		const totalSteps = 20;
+		const totalSteps = Config.calibrationSteps;
 
 		return new Promise((resolve, reject) => {
 
