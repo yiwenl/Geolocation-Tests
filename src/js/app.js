@@ -224,7 +224,6 @@ function _initMap() {
 				document.body.classList.add('hasCalibrated');
 				// debugCanvas.headingOffset = HeadingCalibrate.offset;
 				DebugInfo.headingOffset = HeadingCalibrate.offset;
-				sceneAR.placeObject();
 				oControls.toggleMinified();
 			}, (e)=> {
 				console.log('Error', e);
