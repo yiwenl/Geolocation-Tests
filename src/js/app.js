@@ -6,8 +6,13 @@ import GoogleMapsLoader from 'google-maps';
 import PathTracker from './utils/PathTracker';
 // import HeadingCalibre from './utils/HeadingCalibre';
 import HeadingCalibrate from './utils/HeadingCalibrate';
+import SceneAR from './SceneAR';
+import Config from './Config';
+import * as THREE from 'three';
 
 const GOOGLE_MAP_API_KEY = 'AIzaSyBqCqukoHGzJjI7Sqo41Nw9XT0AhnGoVDw';
+
+window.THREE =  THREE;
 
 
 import { fromLatLngToPixel, distanceLatLng, directionLatLng, directionMapPoint } from './utils';
@@ -46,7 +51,7 @@ const oDebug = {
 
 
 
-let canvas, ctx, projection, pathTracker;
+let canvas, ctx, projection, pathTracker, sceneAR;
 let point = {
 	x:0, y:0
 }
@@ -66,6 +71,19 @@ let locCurr = {lat: 51.528111499999994, lng: -0.0859945};
 let _fake = 0;
 
 function _initMap() {
+
+	const onxrloaded = () => {
+		console.log('XR:', window.XR);
+		sceneAR = new SceneAR();
+	}
+
+	if (window.XR) {
+		onxrloaded()
+	} else {
+		window.addEventListener('xrloaded', onxrloaded)
+	}
+
+
 	canvas = document.createElement("canvas");
 	canvas.className = 'canvas-overlay';
 	canvas.width = window.innerWidth;
@@ -155,9 +173,10 @@ function _initMap() {
 				canvas.style.marginTop = '0px';
 			} else {
 				document.body.classList.add('minified');
-				mapDiv.style.marginTop = `${window.innerHeight/2}px`;
-				canvas.height = Math.floor(window.innerHeight/2);
-				canvas.style.marginTop = `${window.innerHeight/2}px`;
+				const top = Math.floor(window.innerHeight * (1.0 - Config.minifiedHeight));
+				mapDiv.style.marginTop = `${top}px`;
+				canvas.height = Math.floor(window.innerHeight * Config.minifiedHeight);
+				canvas.style.marginTop = `${top}px`;
 			}
 
 			google.maps.event.trigger(map, 'resize')
@@ -180,21 +199,6 @@ function _initMap() {
 
 
 	alfrid.Scheduler.addEF(update);
-
-	window.addEventListener('deviceorientationabsolute', function(event) {
-		console.log('on deviceorientation absolute');
-		if(!hasLoggedInit) {
-			console.log(event.absolute, event.alpha);
-			hasLoggedInit = true;
-		}
-
-	    oDebug.heading = `${heading}`;
-	    oDebug.alpha = `${event.alpha}`;
-	    heading = -event.alpha * Math.PI / 180;
-	    if(!GL.isMobile) {
-	    	heading = -0.5;
-	    }
-	}, false);
 
 	window.addEventListener('deviceorientation', function(event) {
 		console.log('on deviceorientation');
@@ -224,19 +228,28 @@ function _initMap() {
 
 			HeadingCalibrate.on('onProgress', percent => {
 				console.log('Calibrating progress :', percent);
-			})
+			});
 
 			HeadingCalibrate.start()
 			.then((offset)=> {
 				console.log('Heading Offset:', offset, HeadingCalibrate.offset);
 				oDebug.headingOffset = `${HeadingCalibrate.offset}`;
 				document.body.classList.add('hasCalibrated');
+
+				sceneAR.placeObject();
 			}, (e)=> {
 				console.log('Error', e);
 			});
 		} 
 
 	});
+
+
+	console.log('localhost ? ', window.location.href.indexOf('localhost') > -1);
+	if(window.location.href.indexOf('localhost') > -1) {
+		document.body.classList.add('hasCalibrated');
+		oControls.toggleMinified();
+	}
 }
 
 
@@ -254,14 +267,6 @@ function update() {
 	ctx.fillStyle = 'rgba(255, 200, 0, 1)';
 	ctx.fillRect(-w/2, -h, w, h);
 	ctx.restore();
-
-	// w = 4;
-	// ctx.save();
-	// ctx.rotate(headingLocal + HeadingCalibrate.offset);
-	// // ctx.rotate(headingTarget);
-	// ctx.fillStyle = 'rgba(0, 128, 200, 1)';
-	// ctx.fillRect(-w/2, -h, w, h);
-	// ctx.restore();
 
 	w = 2;
 	ctx.save();
