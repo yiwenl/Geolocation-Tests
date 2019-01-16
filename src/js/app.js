@@ -151,7 +151,7 @@ function _initMap() {
 	setTimeout(()=> {
 		// gui.add(oDebug, 'latitude').listen();
 		// gui.add(oDebug, 'longitude').listen();
-		gui.add(oDebug, 'dist1').name('Distance').listen();
+		gui.add(oDebug, 'dist1').name('Distance to Target').listen();
 		gui.add(oDebug, 'headingOffset').listen();
 		gui.add(oDebug, 'headingOffsetNew').listen();
 		// gui.add(oDebug, 'dist2').listen();
@@ -222,6 +222,14 @@ function _initMap() {
 			.then((offset)=> {
 				console.log('Heading Offset:', offset, HeadingCalibrate.offset);
 				oDebug.headingOffsetNew = `${offset}`;
+
+				markerStart.setMap(null);
+				HeadingCalibre.stop({
+					lat:locCurr.lat,
+					lng:locCurr.lng,
+				});
+				oDebug.headingOffset = `${HeadingCalibre.offset}`;
+				document.body.classList.add('hasCalibrated');
 			}, (e)=> {
 				console.log('Error', e);
 			});
