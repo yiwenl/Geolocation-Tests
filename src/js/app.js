@@ -264,8 +264,8 @@ function update() {
 
 	w = 4;
 	ctx.save();
-	// ctx.rotate(headingLocal + HeadingCalibre.offset);
-	ctx.rotate(headingTarget);
+	ctx.rotate(headingLocal + HeadingCalibrate.offset);
+	// ctx.rotate(headingTarget);
 	ctx.fillStyle = 'rgba(0, 128, 200, 1)';
 	ctx.fillRect(-w/2, -h, w, h);
 	ctx.restore();
