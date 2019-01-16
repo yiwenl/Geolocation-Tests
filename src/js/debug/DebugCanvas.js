@@ -6,9 +6,6 @@ import DebugInfo from './DebugInfo';
 class DebugCanvas {
 
 	constructor() {
-		this.headingLocal = 0;
-		this.headingOffset = 0;
-		this.headingTarget = 0;
 		this.point = {x:0, y:0};
 
 		this.canvas = document.createElement("canvas");
@@ -24,7 +21,7 @@ class DebugCanvas {
 	_loop() {
 		this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 		const { ctx } = this;
-		const { point, headingLocal, headingOffset } = DebugInfo;
+		const { point, headingLocal, headingOffset, headingTarget } = DebugInfo;
 
 		ctx.save();
 
@@ -35,6 +32,13 @@ class DebugCanvas {
 		ctx.save();
 		ctx.rotate(headingLocal + headingOffset);
 		ctx.fillStyle = 'rgba(255, 200, 0, 1)';
+		ctx.fillRect(-w/2, -h, w, h);
+		ctx.restore();
+
+		w = 4;
+		ctx.save();
+		ctx.rotate(headingTarget);
+		ctx.fillStyle = 'rgba(0, 64, 200, 1)';
 		ctx.fillRect(-w/2, -h, w, h);
 		ctx.restore();
 

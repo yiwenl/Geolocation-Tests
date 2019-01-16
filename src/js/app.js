@@ -12,7 +12,6 @@ import Config from './Config';
 import * as THREE from 'three';
 
 const GOOGLE_MAP_API_KEY = 'AIzaSyBqCqukoHGzJjI7Sqo41Nw9XT0AhnGoVDw';
-
 window.THREE =  THREE;
 
 
@@ -47,7 +46,6 @@ const oDebug = {
 	headingLocal:'0',
 	alpha:'0',
 	headingOffset:'0',
-
 }
 
 
@@ -85,6 +83,7 @@ function _initMap() {
 
 
 	debugCanvas = new DebugCanvas();
+	DebugInfo.headingLocal = headingLocal;
 
 	markerTarget1 = new google.maps.Marker({
 		position: target1,
@@ -129,7 +128,10 @@ function _initMap() {
 
 
 		  		//	get heading to target
-		  		headingTarget = directionMapPoint(point, target) + Math.PI/2;
+		  		const headingTarget = directionMapPoint(point, target) + Math.PI/2;
+		  		DebugInfo.headingTarget = headingTarget;
+		  		let headingDiff = headingTarget - (headingLocal + HeadingCalibrate.offset);
+		  		sceneAR.headingDiff = headingDiff;
 
 		  	} );
 		}
@@ -179,7 +181,6 @@ function _initMap() {
 
 
 	window.addEventListener('deviceorientation', function(event) {
-		console.log('on deviceorientation');
 	    headingLocal = -event.alpha * Math.PI / 180;
 	    if(!GL.isMobile) {
 	    	headingLocal = 0.5;

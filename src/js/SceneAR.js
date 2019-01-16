@@ -9,7 +9,7 @@ class SceneAR {
 		this._init();
 
 		//	debug
-		gui.add(Config, 'heading').name('Heading AR').listen();
+		// gui.add(Config, 'heading').name('Heading AR').listen();
 	}
 
 
@@ -40,7 +40,7 @@ class SceneAR {
 
 
 		this._heading = 0;
-		this._headingOffset = 0;
+		this.headingDiff = 0.1;
 
 		XR.run({canvas:this.canvas});
 	}
@@ -73,12 +73,12 @@ class SceneAR {
 		var material2 = new THREE.MeshStandardMaterial( {roughness:1.0,metalness:0.5,color: 0x990000} );
 		this.ball = new THREE.Mesh( geometry, material );
 		this.ball2 = new THREE.Mesh( geometry, material2 );
-		scene.add( this.ball );
-		scene.add( this.ball2 );
+		// scene.add( this.ball );
+		// scene.add( this.ball2 );
 
 
 		//	load model : 
-		const loader = new GLTFLoader();
+		let loader = new GLTFLoader();
 		loader.load(
 		    './assets/gltf/arrows.gltf',
 		    ( gltf ) => {
@@ -95,8 +95,7 @@ class SceneAR {
 		        meshes.forEach( mesh => {
 		        	mesh.material = material;
 		        });
-
-		        scene.add( gltf.scene );
+		        scene.add( this._arrows );
 		    },
 		    ( xhr ) => {
 		        // called while loading is progressing
@@ -107,15 +106,35 @@ class SceneAR {
 		        console.error( 'An error happened', error );
 		    },
 		);
-	}
 
-	updateHeading(headingMap) {
-		this._headingOffset = headingMap - this._heading;
-	}
+		loader = new GLTFLoader();
+			loader.load(
+			    './assets/gltf/arrows.gltf',
+			    ( gltf ) => {
+			        // called when the resource is loaded
 
+			        this._arrows1 = gltf.scene;
+			        const meshes = this._arrows1.children;
+			        const material = new THREE.MeshStandardMaterial({
+			        	roughness:1.0,
+			        	metalness:0.5,
+			        	color:0x00FF66
+			        });
 
-	placeObject(headingOffset) {
-
+			        meshes.forEach( mesh => {
+			        	mesh.material = material;
+			        });
+			        scene.add( this._arrows1 );
+			    },
+			    ( xhr ) => {
+			        // called while loading is progressing
+			        console.log( `${( xhr.loaded / xhr.total * 100 )}% loaded` );
+			    },
+			    ( error ) => {
+			        // called when loading has errors
+			        console.error( 'An error happened', error );
+			    },
+			);
 	}
 
 
@@ -137,12 +156,21 @@ class SceneAR {
 		}
 		
 
-		Config.heading = `${Math.floor(this._heading * 180 / Math.PI)}`;
-		
 
+		let heading2 = this._heading + this.headingDiff;
+		front.x = 0;
+		front.y = 0;
+		front.z = -2;
+
+		front.applyAxisAngle(new THREE.Vector3(0, -1, 0), heading2);
+		front.add(camera.position);
+		front.y -= 0.5;
+		if(this._arrows1) {
+			this._arrows1.position.copy(front);	
+			this._arrows1.rotation.y = -heading2;
+		}
 
 	}
-
 
 }
 
