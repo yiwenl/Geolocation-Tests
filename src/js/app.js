@@ -4,7 +4,7 @@ import alfrid, { GL } from 'alfrid';
 
 import GoogleMapsLoader from 'google-maps';
 import PathTracker from './utils/PathTracker';
-import HeadingCalibre from './utils/HeadingCalibre';
+// import HeadingCalibre from './utils/HeadingCalibre';
 import HeadingCalibrate from './utils/HeadingCalibrate';
 
 const GOOGLE_MAP_API_KEY = 'AIzaSyBqCqukoHGzJjI7Sqo41Nw9XT0AhnGoVDw';
@@ -41,7 +41,6 @@ const oDebug = {
 	headingLocal:'0',
 	alpha:'0',
 	headingOffset:'0',
-	headingOffsetNew:'0',
 
 }
 
@@ -112,8 +111,6 @@ function _initMap() {
 
 		  		let dist = distanceLatLng(locPrev, locCurr)
 
-		  		HeadingCalibre.update(headingLocal);
-
 		  		pathTracker.add(new google.maps.LatLng(myLatlng.lat, myLatlng.lng));
 
 		  		marker = new google.maps.Marker({
@@ -146,6 +143,28 @@ function _initMap() {
 
 	setInterval(updateLocation, 1000);
 
+	const oControls = {
+		toggleMinified:() => {
+			const mapDiv = document.body.querySelector('#map');
+			console.log('mapDiv', mapDiv);
+
+			if(document.body.classList.contains('minified')) {
+				document.body.classList.remove('minified');
+				mapDiv.style.marginTop = '0px';
+				canvas.height = window.innerHeight;
+				canvas.style.marginTop = '0px';
+			} else {
+				document.body.classList.add('minified');
+				mapDiv.style.marginTop = `${window.innerHeight/2}px`;
+				canvas.height = Math.floor(window.innerHeight/2);
+				canvas.style.marginTop = `${window.innerHeight/2}px`;
+			}
+
+			google.maps.event.trigger(map, 'resize')
+
+			//	
+		}
+	}
 
 
 	setTimeout(()=> {
@@ -153,10 +172,10 @@ function _initMap() {
 		// gui.add(oDebug, 'longitude').listen();
 		gui.add(oDebug, 'dist1').name('Distance to Target').listen();
 		gui.add(oDebug, 'headingOffset').listen();
-		gui.add(oDebug, 'headingOffsetNew').listen();
 		// gui.add(oDebug, 'dist2').listen();
 		gui.add(HeadingCalibrate, 'stateString').listen();
 		gui.add(pathTracker, 'clear').name('Clear tracks');
+		gui.add(oControls, 'toggleMinified');
 	}, 200);
 
 
@@ -191,19 +210,8 @@ function _initMap() {
 	btnCalibre.addEventListener('click', (e)=> {
 
 		if(!hasCalibrated) {
-			btnCalibre.innerHTML = 'END';
+			btnCalibre.innerHTML = 'CALIBRATING...';
 			hasCalibrated = true;
-
-			// markerStart = new google.maps.Marker({
-			// 	position: locCurr,
-			// 	map: map,
-			// 	title: 'Target 1'
-			// });
-			HeadingCalibre.start({
-				lat:locCurr.lat,
-				lng:locCurr.lng,
-			});
-
 
 			HeadingCalibrate.once('onStart', loc => {
 				markerStart = new google.maps.Marker({
@@ -221,27 +229,13 @@ function _initMap() {
 			HeadingCalibrate.start()
 			.then((offset)=> {
 				console.log('Heading Offset:', offset, HeadingCalibrate.offset);
-				oDebug.headingOffsetNew = `${offset}`;
-
-				markerStart.setMap(null);
-				HeadingCalibre.stop({
-					lat:locCurr.lat,
-					lng:locCurr.lng,
-				});
-				oDebug.headingOffset = `${HeadingCalibre.offset}`;
+				oDebug.headingOffset = `${HeadingCalibrate.offset}`;
 				document.body.classList.add('hasCalibrated');
 			}, (e)=> {
 				console.log('Error', e);
 			});
-		} else {
-			markerStart.setMap(null);
-			HeadingCalibre.stop({
-				lat:locCurr.lat,
-				lng:locCurr.lng,
-			});
-			oDebug.headingOffset = `${HeadingCalibre.offset}`;
-			document.body.classList.add('hasCalibrated');
-		}
+		} 
+
 	});
 }
 
@@ -256,19 +250,18 @@ function update() {
 	ctx.translate(point.x, point.y);
 
 	ctx.save();
-	// console.log('angle :', heading, HeadingCalibre.offset);
-	ctx.rotate(headingLocal + HeadingCalibre.offset);
+	ctx.rotate(headingLocal + HeadingCalibrate.offset);
 	ctx.fillStyle = 'rgba(255, 200, 0, 1)';
 	ctx.fillRect(-w/2, -h, w, h);
 	ctx.restore();
 
-	w = 4;
-	ctx.save();
-	ctx.rotate(headingLocal + HeadingCalibrate.offset);
-	// ctx.rotate(headingTarget);
-	ctx.fillStyle = 'rgba(0, 128, 200, 1)';
-	ctx.fillRect(-w/2, -h, w, h);
-	ctx.restore();
+	// w = 4;
+	// ctx.save();
+	// ctx.rotate(headingLocal + HeadingCalibrate.offset);
+	// // ctx.rotate(headingTarget);
+	// ctx.fillStyle = 'rgba(0, 128, 200, 1)';
+	// ctx.fillRect(-w/2, -h, w, h);
+	// ctx.restore();
 
 	w = 2;
 	ctx.save();
@@ -281,8 +274,6 @@ function update() {
 
 	// pathTracker.update(heading);
 	pathTracker.update(headingLocal);
-
-	oDebug.headingOffset = `${HeadingCalibre.offset}`;
 }
 
 
