@@ -55,7 +55,7 @@ class HeadingCalibrate extends EventEmitter {
 					this._locEnd.lng += 0.001;
 				}
 
-				this.emit('onStart', this._locEnd);
+				this.emit('onEnd', this._locEnd);
 				console.log('location end :', this._locEnd);
 
 				let headingGeo = directionLatLng(this._locEnd, this._locStart) + Math.PI/2;	

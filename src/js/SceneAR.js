@@ -2,6 +2,7 @@
 import alfrid from 'alfrid';
 import Config from './Config';
 import GLTFLoader from 'three-gltf-loader';
+import HeadingCalibrate from './utils/HeadingCalibrate';
 
 
 class SceneAR {
@@ -10,6 +11,9 @@ class SceneAR {
 
 		//	debug
 		// gui.add(Config, 'heading').name('Heading AR').listen();
+
+		HeadingCalibrate.on('onStart', ()=>this._onCalibrateStart());
+		HeadingCalibrate.on('onEnd', ()=>this._onCalibrateEnd());
 	}
 
 
@@ -40,9 +44,24 @@ class SceneAR {
 
 
 		this._heading = 0;
+		this._headingStart = 0;
 		this._headingDiff = new alfrid.EaseNumber(0, 1);
+		this._hasCalibrated = false;
 
 		XR.run({canvas:this.canvas});
+	}
+
+
+	_onCalibrateStart() {
+		console.log('Calibrating start');
+
+		this._headingStart = this._heading;
+	}
+
+
+	_onCalibrateEnd() {
+		this._hasCalibrated = true;
+		this._arrows1.visible = true;
 	}
 
 
@@ -130,6 +149,7 @@ class SceneAR {
 			        	mesh.material = material;
 			        });
 			        scene.add( this._arrows1 );
+			        this._arrows1.visible = false;
 			    },
 			    ( xhr ) => {
 			        // called while loading is progressing

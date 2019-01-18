@@ -204,6 +204,8 @@ function _initMap() {
 			btnCalibre.innerHTML = 'CALIBRATING...';
 			hasCalibrated = true;
 
+			oControls.toggleMinified();
+
 			HeadingCalibrate.once('onStart', loc => {
 				markerStart = new google.maps.Marker({
 					position: loc,
@@ -222,9 +224,7 @@ function _initMap() {
 				console.log('Heading Offset:', offset, HeadingCalibrate.offset);
 				oDebug.headingOffset = `${HeadingCalibrate.offset}`;
 				document.body.classList.add('hasCalibrated');
-				// debugCanvas.headingOffset = HeadingCalibrate.offset;
 				DebugInfo.headingOffset = HeadingCalibrate.offset;
-				oControls.toggleMinified();
 			}, (e)=> {
 				console.log('Error', e);
 			});
