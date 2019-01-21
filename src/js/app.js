@@ -95,6 +95,11 @@ function _initMap() {
 		if (navigator.geolocation) {
 			
 			navigator.geolocation.getCurrentPosition( (o)=> {
+				let t = new Date().getTime();
+				// console.log(t - time);
+				DebugInfo.geoUpdateInterval = `${t - time}`;
+				time = t;
+				// console.log('Geolocation update:', o.coords);
 
 				oDebug.latitude = o.coords.latitude.toString();
 				oDebug.longitude = o.coords.longitude.toString();
@@ -186,6 +191,7 @@ function _initMap() {
 		// gui.add(oDebug, 'headingOffset').listen();
 		gui.add(DebugInfo, 'distanceToTarget').name('Distance to Target').listen();
 		gui.add(DebugInfo, 'state').listen();
+		gui.add(DebugInfo, 'geoUpdateInterval').listen();
 		// gui.add(oDebug, 'dist2').listen();
 		gui.add(HeadingCalibrate, 'stateString').listen();
 		gui.add(oControls, 'toggleMinified');
@@ -241,7 +247,7 @@ function _initMap() {
 
 	});
 
-	//*/
+	/*/
 	console.log('localhost ? ', window.location.href.indexOf('localhost') > -1);
 	if(window.location.href.indexOf('localhost') > -1) {
 		document.body.classList.add('hasCalibrated');

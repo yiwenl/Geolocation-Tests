@@ -4,6 +4,7 @@ import Config from './Config';
 import GLTFLoader from 'three-gltf-loader';
 import HeadingCalibrate from './utils/HeadingCalibrate';
 import Device from './Device';
+import DebugInfo from './debug/DebugInfo';
 import { loadModel, placeObjectInfront } from './utils';
 
 
@@ -81,17 +82,14 @@ class SceneAR {
 			this._arrowsInitHeading.visible = false	
 		}
 
-		console.log('End of calibration, recenter');
+		// console.log('End of calibration, recenter', this.headingDiff);
 		XR.XrController.recenter();
 
 
 		const { camera } = XR.Threejs.xrScene();
-		this._realWorldScale = AVG_HUMAN_HEIGHT / camera.position.y;
-
-		// window.addEventListener('touchstart', () => {
-		// 	console.log('XR Recenter');
-		// 	XR.XrController.recenter();			
-		// });
+		const dist = parseFloat(DebugInfo.distanceToTarget);
+		console.log('Dist to target : ', dist);
+		placeObjectInfront(this._cube2, camera, this._heading + this.headingDiff, dist, true);
 	}
 
 
@@ -142,8 +140,16 @@ class SceneAR {
 			metalness:0.5,
 			color:0x1122FF
 		} );
+
+		const material2 = new THREE.MeshStandardMaterial( {
+			roughness:1.0,
+			metalness:0.5,
+			color:0x11FF22
+		} );
 		this._cube = new THREE.Mesh( geometry, material );
+		this._cube2 = new THREE.Mesh( geometry, material2 );
 		scene.add( this._cube );
+		scene.add( this._cube2 );
 	}
 
 

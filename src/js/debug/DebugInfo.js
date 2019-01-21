@@ -7,5 +7,6 @@ export default {
 	headingLocal:0,
 	headingOffset:0,
 	distanceToTarget:0,
+	geoUpdateInterval:0,
 	state:'INIT'
 }
