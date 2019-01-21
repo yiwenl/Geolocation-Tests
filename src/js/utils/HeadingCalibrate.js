@@ -55,15 +55,14 @@ class HeadingCalibrate extends EventEmitter {
 					this._locEnd.lng += 0.001;
 				}
 
-				this.emit('onEnd', this._locEnd);
-				console.log('location end :', this._locEnd);
-
 				let headingGeo = directionLatLng(this._locEnd, this._locStart) + Math.PI/2;	
 				if(headingGeo > Math.PI * 2) {
 					headingGeo -= Math.PI * 2;
 				}
 
 				this._offset = (headingGeo - this._avgHeading);
+
+				this.emit('onEnd', this._offset);
 
 				this._state = 2;
 				resolve(this._offset);
@@ -102,6 +101,12 @@ class HeadingCalibrate extends EventEmitter {
 
 	_onDeviceOrientation(e) {
 		this._heading = -event.alpha * Math.PI / 180;
+	}
+
+
+	reset() {
+		this._offset = 0;
+		this.emit('onReset');
 	}
 
 

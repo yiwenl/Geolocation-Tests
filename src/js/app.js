@@ -39,9 +39,6 @@ let target2 = {
 const oDebug = {
 	latitude:'0',
 	longitude:'0',
-	dist1:'0',
-	dist2:'0',
-	dist:'0',
 	heading:'0',
 	headingLocal:'0',
 	alpha:'0',
@@ -97,62 +94,62 @@ function _initMap() {
 
 		if (navigator.geolocation) {
 			
-		  	navigator.geolocation.getCurrentPosition( (o)=> {
+			navigator.geolocation.getCurrentPosition( (o)=> {
 
-		  		oDebug.latitude = o.coords.latitude.toString();
-		  		oDebug.longitude = o.coords.longitude.toString();
-
-
-		  		const myLatlng = {
-		  			lat: o.coords.latitude, 
-		  			lng: o.coords.longitude + _fake
-		  		};
-		  		locPrev.lat = locCurr.lat;
-		  		locPrev.lng = locCurr.lng;
-		  		locCurr.lat = myLatlng.lat;
-		  		locCurr.lng = myLatlng.lng;
-
-		  		let dist = distanceLatLng(locPrev, locCurr)
-
-		  		if(!marker) {
-		  			marker = new google.maps.Marker({
-		  				position: myLatlng,
-		  				map: map,
-		  				title: 'Me'
-		  			});	
-		  		} else {
-		  			const loc = new google.maps.LatLng(myLatlng);
-		  			marker.setPosition(loc);
-		  		}
-
-		  		
-
-		  		// oDebug.dist = `${dist}`;
-		  		oDebug.dist1 = `${distanceLatLng(myLatlng, target1)}`;
-		  		// oDebug.dist2 = `${distanceLatLng(myLatlng, target2)}`;
-
-		  		target = fromLatLngToPixel(map, markerTarget1.position);
-		  		point = fromLatLngToPixel(map, marker.position);
-		  		DebugInfo.point = point;
+				oDebug.latitude = o.coords.latitude.toString();
+				oDebug.longitude = o.coords.longitude.toString();
 
 
-		  		//	get heading to target
-		  		const headingTarget = directionMapPoint(point, target) + Math.PI/2;
-		  		DebugInfo.headingTarget = headingTarget;
-		  		let headingDiff = headingTarget - (headingLocal + HeadingCalibrate.offset);
-		  		if(sceneAR) {
-		  			sceneAR.headingDiff = headingDiff;	
-		  		}
+				const myLatlng = {
+					lat: o.coords.latitude, 
+					lng: o.coords.longitude + _fake
+				};
+				locPrev.lat = locCurr.lat;
+				locPrev.lng = locCurr.lng;
+				locCurr.lat = myLatlng.lat;
+				locCurr.lng = myLatlng.lng;
 
-		  		alfrid.Scheduler.next(updateLocation);
+				if(!marker) {
+					marker = new google.maps.Marker({
+						position: myLatlng,
+						map: map,
+						title: 'Me'
+					});	
+				} else {
+					const loc = new google.maps.LatLng(myLatlng);
+					marker.setPosition(loc);
+				}
 
-		  		if(!GL.isMobile) {
-		  			// _fake += 0.00005;
-		  			const t = new Date().getTime() * 0.001;
-		  			_fake = Math.sin(t) * 0.0015;
-		  		}
+				const distToTarget = distanceLatLng(myLatlng, target1);
+				DebugInfo.distanceToTarget = `${distToTarget}`;
 
-		  	} );
+				if(distToTarget < 10) {
+					DebugInfo._state = 'Adding Object';
+					sceneAR.placeObject();
+				}
+
+				target = fromLatLngToPixel(map, markerTarget1.position);
+				point = fromLatLngToPixel(map, marker.position);
+				DebugInfo.point = point;
+
+
+				//	get heading to target
+				const headingTarget = directionMapPoint(point, target) + Math.PI/2;
+				DebugInfo.headingTarget = headingTarget;
+				let headingDiff = headingTarget - (headingLocal + HeadingCalibrate.offset);
+				if(sceneAR) {
+					sceneAR.headingDiff = headingDiff;	
+				}
+
+				alfrid.Scheduler.next(updateLocation);
+
+				if(!GL.isMobile) {
+					// _fake += 0.00005;
+					const t = new Date().getTime() * 0.001;
+					_fake = Math.sin(t) * 0.0015;
+				}
+
+			} );
 
 		}
 
@@ -165,8 +162,6 @@ function _initMap() {
 	const oControls = {
 		toggleMinified:() => {
 			const mapDiv = document.body.querySelector('#map');
-			console.log('mapDiv', mapDiv);
-
 			if(document.body.classList.contains('minified')) {
 				document.body.classList.remove('minified');
 				mapDiv.style.marginTop = '0px';
@@ -188,8 +183,9 @@ function _initMap() {
 	setTimeout(()=> {
 		// gui.add(oDebug, 'latitude').listen();
 		// gui.add(oDebug, 'longitude').listen();
-		gui.add(oDebug, 'dist1').name('Distance to Target').listen();
-		gui.add(oDebug, 'headingOffset').listen();
+		// gui.add(oDebug, 'headingOffset').listen();
+		gui.add(DebugInfo, 'distanceToTarget').name('Distance to Target').listen();
+		gui.add(DebugInfo, 'state').listen();
 		// gui.add(oDebug, 'dist2').listen();
 		gui.add(HeadingCalibrate, 'stateString').listen();
 		gui.add(oControls, 'toggleMinified');
@@ -197,12 +193,12 @@ function _initMap() {
 
 
 	window.addEventListener('deviceorientation', function(event) {
-	    headingLocal = -event.alpha * Math.PI / 180;
-	    if(!GL.isMobile) {
-	    	headingLocal = 0.5;
-	    }
+		headingLocal = -event.alpha * Math.PI / 180;
+		if(!GL.isMobile) {
+			headingLocal = 0.5;
+		}
 
-	    DebugInfo.headingLocal = headingLocal;
+		DebugInfo.headingLocal = headingLocal;
 
 	}, false);
 
@@ -222,6 +218,8 @@ function _initMap() {
 					map: map,
 					title: 'Target 1'
 				});
+
+				DebugInfo.state = 'Calibrating';
 			});
 
 
@@ -235,6 +233,8 @@ function _initMap() {
 				oDebug.headingOffset = `${HeadingCalibrate.offset}`;
 				document.body.classList.add('hasCalibrated');
 				DebugInfo.headingOffset = HeadingCalibrate.offset;
+
+				DebugInfo.state = 'Calibrating End';
 			}, (e)=> {
 				console.log('Error', e);
 			});
@@ -244,10 +244,10 @@ function _initMap() {
 
 
 	console.log('localhost ? ', window.location.href.indexOf('localhost') > -1);
-	if(window.location.href.indexOf('localhost') > -1) {
-		document.body.classList.add('hasCalibrated');
-		oControls.toggleMinified();
-	}
+	// if(window.location.href.indexOf('localhost') > -1) {
+	// 	document.body.classList.add('hasCalibrated');
+	// 	oControls.toggleMinified();
+	// }
 }
 
 function loop() {
@@ -261,12 +261,12 @@ function _init() {
 	const el = document.getElementById('map');
 
 	GoogleMapsLoader.load((_google) => {
-	    map = new google.maps.Map(el, {
-	    	center: {lat: 51.528111499999994, lng: -0.0859945},
-	    	zoom
-	    });
+		map = new google.maps.Map(el, {
+			center: {lat: 51.528111499999994, lng: -0.0859945},
+			zoom
+		});
 
-	    _initMap();
+		_initMap();
 	});
 
 }

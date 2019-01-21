@@ -12,12 +12,17 @@ const cherry = 0xDD0065
 const mint = 0x00EDAF
 const canary = 0xFCEE21
 
+const AVG_HUMAN_HEIGHT = 1.65; //	in meters
+
 class SceneAR {
 	constructor() {
 		this._init();
 
 		//	debug
 		// gui.add(Config, 'heading').name('Heading AR').listen();
+
+
+		this._hasAddObject = false;
 
 		HeadingCalibrate.on('onStart', ()=>this._onCalibrateStart());
 		HeadingCalibrate.on('onEnd', ()=>this._onCalibrateEnd());
@@ -59,13 +64,6 @@ class SceneAR {
 		this._hasCalibrated = false;
 
 		XR.run({canvas:this.canvas});
-
-
-		window.addEventListener('touchstart', (e) => {
-			console.log('touched');
-
-			XR.XrController.recenter() 
-		});
 	}
 
 
@@ -73,18 +71,27 @@ class SceneAR {
 		console.log('Calibrating start');
 
 		this._headingStart = this._heading;
-
-
-		const { camera, scene } = XR.Threejs.xrScene();
 	}
 
 
 	_onCalibrateEnd() {
 		this._hasCalibrated = true;
-		this._arrows1.visible = true;
+		if(this._arrows1) {
+			this._arrows1.visible = true;
+			this._arrowsInitHeading.visible = false	
+		}
 
 		console.log('End of calibration, recenter');
-		XR.XrController.recenter() 
+		XR.XrController.recenter();
+
+
+		const { camera } = XR.Threejs.xrScene();
+		this._realWorldScale = AVG_HUMAN_HEIGHT / camera.position.y;
+
+		// window.addEventListener('touchstart', () => {
+		// 	console.log('XR Recenter');
+		// 	XR.XrController.recenter();			
+		// });
 	}
 
 
@@ -102,7 +109,7 @@ class SceneAR {
 
 		// Set the initial camera position relative to the scene we just laid out. This must be at a
 		// height greater than y=0.
-		camera.position.set(0, 1, 0)
+		camera.position.set(0, AVG_HUMAN_HEIGHT, 0)
 
 		// Sync the xr controller's 6DoF position and camera paremeters with our scene.
 		XR.XrController.updateCameraProjectionMatrix({
@@ -127,8 +134,18 @@ class SceneAR {
 			.then( mArrow => this._addArrows(mArrow), (e)=> {
 				console.log('Error :', e);
 			});
+	}
 
 
+	placeObject() {
+		if(!this._hasAddObject) {
+			console.log('Place object ');
+		}
+		this._hasAddObject = true;
+	}
+
+	removeObject() {
+		this._hasAddObject = false;
 	}
 
 	_addArrows(mArrow) {
@@ -173,12 +190,13 @@ class SceneAR {
 			metalness:0.5,
 			color:0x999999
 		});
-		console.log('materialInit', materialInit);
+		// console.log('materialInit', materialInit);
 
 		meshes.forEach( mesh => {
 			mesh.material = materialInit;
 		});
 		scene.add( this._arrowsInitHeading );
+
 	}
 
 
@@ -215,29 +233,30 @@ class SceneAR {
 		}
 
 
-		let heading3 = this._heading + ( this._initHeading - Device.headingLocal);
+		if(!this._hasCalibrated) {
+			let heading3 = this._heading + ( this._initHeading - Device.headingLocal);
 
-		const q = new THREE.Quaternion();
-		q.setFromAxisAngle( new THREE.Vector3( 0, 1, 0 ), heading3 );
+			const q = new THREE.Quaternion();
+			q.setFromAxisAngle( new THREE.Vector3( 0, 1, 0 ), heading3 );
 
-		front = new THREE.Vector3(0, 0, -1);
-		
-		front.applyQuaternion(q);
-		// front.applyQuaternion(camera.quaternion);
+			front = new THREE.Vector3(0, 0, -1);
+			front.applyQuaternion(q);
+			front.setLength(3);
+			front.add(camera.position);
+			front.y -= 0.5;
 
-		front.setLength(3);
-		front.add(camera.position);
-
-		front.y = 0.2;
-
-		// front.applyAxisAngle(new THREE.Vector3(0, -1, 0), heading3);
-		// front.add(camera.position);
-		// front.y -= 0.5;
-
-		if(this._arrowsInitHeading) {
-			this._arrowsInitHeading.position.copy(front);	
-			this._arrowsInitHeading.rotation.y = -heading3;
+			if(this._arrowsInitHeading) {
+				this._arrowsInitHeading.position.copy(front);	
+				this._arrowsInitHeading.rotation.y = -heading3;
+			}	
 		}
+		
+
+		this._realWorldScale = AVG_HUMAN_HEIGHT / camera.position.y;
+
+		// if(Math.random() > .9) {
+		// 	console.log('Camera Y :', camera.position.y, this._realWorldScale);
+		// }
 	}
 
 
