@@ -4,7 +4,7 @@ import Config from './Config';
 import GLTFLoader from 'three-gltf-loader';
 import HeadingCalibrate from './utils/HeadingCalibrate';
 import Device from './Device';
-import { loadModel } from './utils';
+import { loadModel, placeObjectInfront } from './utils';
 
 
 const purple = 0xAD50FF
@@ -134,12 +134,25 @@ class SceneAR {
 			.then( mArrow => this._addArrows(mArrow), (e)=> {
 				console.log('Error :', e);
 			});
+
+
+		const geometry = new THREE.BoxGeometry( 1, 1, 1 );
+		const material = new THREE.MeshStandardMaterial( {
+			roughness:1.0,
+			metalness:0.5,
+			color:0x1122FF
+		} );
+		this._cube = new THREE.Mesh( geometry, material );
+		scene.add( this._cube );
 	}
 
 
 	placeObject() {
+		const { camera } = XR.Threejs.xrScene();
 		if(!this._hasAddObject) {
 			console.log('Place object ');
+
+			placeObjectInfront(this._cube, camera, this._heading, 10, true);
 		}
 		this._hasAddObject = true;
 	}
@@ -228,35 +241,14 @@ class SceneAR {
 		front.y -= 0.5;
 
 		if(this._arrows1) {
-			this._arrows1.position.copy(front);	
-			this._arrows1.rotation.y = -heading2;
+			placeObjectInfront(this._arrows1, camera, heading2, 3, true);
 		}
 
-
-		if(!this._hasCalibrated) {
-			let heading3 = this._heading + ( this._initHeading - Device.headingLocal);
-
-			const q = new THREE.Quaternion();
-			q.setFromAxisAngle( new THREE.Vector3( 0, 1, 0 ), heading3 );
-
-			front = new THREE.Vector3(0, 0, -1);
-			front.applyQuaternion(q);
-			front.setLength(3);
-			front.add(camera.position);
-			front.y -= 0.5;
-
-			if(this._arrowsInitHeading) {
-				this._arrowsInitHeading.position.copy(front);	
-				this._arrowsInitHeading.rotation.y = -heading3;
-			}	
+		if(!this._hasCalibrated && this._arrowsInitHeading) {
+			let heading = this._heading + ( this._initHeading - Device.headingLocal);
+			placeObjectInfront(this._arrowsInitHeading, camera, heading, 3, true);
 		}
-		
 
-		this._realWorldScale = AVG_HUMAN_HEIGHT / camera.position.y;
-
-		// if(Math.random() > .9) {
-		// 	console.log('Camera Y :', camera.position.y, this._realWorldScale);
-		// }
 	}
 
 

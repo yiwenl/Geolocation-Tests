@@ -229,7 +229,6 @@ function _initMap() {
 
 			HeadingCalibrate.start()
 			.then((offset)=> {
-				console.log('Heading Offset:', offset, HeadingCalibrate.offset);
 				oDebug.headingOffset = `${HeadingCalibrate.offset}`;
 				document.body.classList.add('hasCalibrated');
 				DebugInfo.headingOffset = HeadingCalibrate.offset;
@@ -242,12 +241,13 @@ function _initMap() {
 
 	});
 
-
+	//*/
 	console.log('localhost ? ', window.location.href.indexOf('localhost') > -1);
-	// if(window.location.href.indexOf('localhost') > -1) {
-	// 	document.body.classList.add('hasCalibrated');
-	// 	oControls.toggleMinified();
-	// }
+	if(window.location.href.indexOf('localhost') > -1) {
+		document.body.classList.add('hasCalibrated');
+		oControls.toggleMinified();
+	}
+	//*/
 }
 
 function loop() {
