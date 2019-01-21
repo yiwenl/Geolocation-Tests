@@ -3,7 +3,14 @@ import alfrid from 'alfrid';
 import Config from './Config';
 import GLTFLoader from 'three-gltf-loader';
 import HeadingCalibrate from './utils/HeadingCalibrate';
+import Device from './Device';
+import { loadModel } from './utils';
 
+
+const purple = 0xAD50FF
+const cherry = 0xDD0065
+const mint = 0x00EDAF
+const canary = 0xFCEE21
 
 class SceneAR {
 	constructor() {
@@ -14,6 +21,8 @@ class SceneAR {
 
 		HeadingCalibrate.on('onStart', ()=>this._onCalibrateStart());
 		HeadingCalibrate.on('onEnd', ()=>this._onCalibrateEnd());
+
+		this._initHeading = 0;
 	}
 
 
@@ -35,6 +44,7 @@ class SceneAR {
 		// based on 6DoF camera motion.
 		XR.addCameraPipelineModule(XR.Threejs.pipelineModule())
 
+
 		XR.addCameraPipelineModule({
 			// Camera pipeline modules need a name. It can be whatever you want but must be unique within your app.
 			name: 'placeground',
@@ -49,6 +59,13 @@ class SceneAR {
 		this._hasCalibrated = false;
 
 		XR.run({canvas:this.canvas});
+
+
+		window.addEventListener('touchstart', (e) => {
+			console.log('touched');
+
+			XR.XrController.recenter() 
+		});
 	}
 
 
@@ -56,17 +73,24 @@ class SceneAR {
 		console.log('Calibrating start');
 
 		this._headingStart = this._heading;
+
+
+		const { camera, scene } = XR.Threejs.xrScene();
 	}
 
 
 	_onCalibrateEnd() {
 		this._hasCalibrated = true;
 		this._arrows1.visible = true;
+
+		console.log('End of calibration, recenter');
+		XR.XrController.recenter() 
 	}
 
 
 	_onStart() {
 		const { camera, scene } = XR.Threejs.xrScene();
+		this._initHeading = Device.heading;
 
 		// Add a light to the scene
 		const light = new THREE.AmbientLight( 0x404040, 5 ); // soft white light
@@ -78,7 +102,7 @@ class SceneAR {
 
 		// Set the initial camera position relative to the scene we just laid out. This must be at a
 		// height greater than y=0.
-		camera.position.set(0, 3, 0)
+		camera.position.set(0, 1, 0)
 
 		// Sync the xr controller's 6DoF position and camera paremeters with our scene.
 		XR.XrController.updateCameraProjectionMatrix({
@@ -86,80 +110,75 @@ class SceneAR {
 			facing: camera.quaternion,
 		});
 
+		XR.XrController.configure({ enableWorldPoints: true });
 
-		var geometry = new THREE.SphereBufferGeometry( .2, 32, 32 );
-		var material = new THREE.MeshStandardMaterial( {roughness:1.0,metalness:0.5,color: 0xff6600} );
-		var material2 = new THREE.MeshStandardMaterial( {roughness:1.0,metalness:0.5,color: 0x990000} );
-		this.ball = new THREE.Mesh( geometry, material );
-		this.ball2 = new THREE.Mesh( geometry, material2 );
-		// scene.add( this.ball );
-		// scene.add( this.ball2 );
+		for (let i = -5; i <=5 ; i += .5) {
+			for (let j = -5; j <= 5; j += .5) {
+				if (Math.round(i) != i && Math.round(j) != j) { continue }
+				const sphere = new THREE.Mesh(
+					new THREE.SphereGeometry(.03, 8, 8), new THREE.MeshBasicMaterial({color: purple}))
+				sphere.position.set(i, 0, j)
+				scene.add(sphere)
+			}
+		}
 
+		//	loading chevron model
+		loadModel('./assets/gltf/arrows.gltf')
+			.then( mArrow => this._addArrows(mArrow), (e)=> {
+				console.log('Error :', e);
+			});
+
+
+	}
+
+	_addArrows(mArrow) {
+		const { camera, scene } = XR.Threejs.xrScene();
 		const scaleArrow = 0.25;
 
-		//	load model : 
-		let loader = new GLTFLoader();
-		loader.load(
-		    './assets/gltf/arrows.gltf',
-		    ( gltf ) => {
-		        // called when the resource is loaded
+		this._arrows = mArrow;
+		this._arrows.scale.set(scaleArrow, scaleArrow, scaleArrow);
+		let meshes = this._arrows.children;
+		const material = new THREE.MeshStandardMaterial({
+			roughness:1.0,
+			metalness:0.5,
+			color:0xFF6600
+		});
 
-		        this._arrows = gltf.scene;
-		        this._arrows.scale.set(scaleArrow, scaleArrow, scaleArrow);
-		        const meshes = this._arrows.children;
-		        const material = new THREE.MeshStandardMaterial({
-		        	roughness:1.0,
-		        	metalness:0.5,
-		        	color:0xFF6600
-		        });
+		meshes.forEach( mesh => {
+			mesh.material = material;
+		});
+		scene.add( this._arrows );
 
-		        console.log('this._arrows', this._arrows.scale);
+		this._arrows1 = mArrow.clone();
+		this._arrows1.scale.set(scaleArrow+.1, scaleArrow+.1, scaleArrow+.1);
+		const meshes2 = this._arrows1.children;
+		const material2 = new THREE.MeshStandardMaterial({
+			roughness:1.0,
+			metalness:0.5,
+			color:0x00FF66
+		});
 
-		        meshes.forEach( mesh => {
-		        	mesh.material = material;
-		        });
-		        scene.add( this._arrows );
-		    },
-		    ( xhr ) => {
-		        // called while loading is progressing
-		        console.log( `${( xhr.loaded / xhr.total * 100 )}% loaded` );
-		    },
-		    ( error ) => {
-		        // called when loading has errors
-		        console.error( 'An error happened', error );
-		    },
-		);
+		meshes2.forEach( mesh => {
+			mesh.material = material2;
+		});
+		scene.add( this._arrows1 );
+		this._arrows1.visible = false;
 
-		loader = new GLTFLoader();
-			loader.load(
-			    './assets/gltf/arrows.gltf',
-			    ( gltf ) => {
-			        // called when the resource is loaded
 
-			        this._arrows1 = gltf.scene;
-			        this._arrows1.scale.set(scaleArrow, scaleArrow, scaleArrow);
-			        const meshes = this._arrows1.children;
-			        const material = new THREE.MeshStandardMaterial({
-			        	roughness:1.0,
-			        	metalness:0.5,
-			        	color:0x00FF66
-			        });
+		this._arrowsInitHeading = mArrow.clone();
+		this._arrowsInitHeading.scale.set(scaleArrow+.1, scaleArrow+.1, scaleArrow+.1);
+		meshes = this._arrowsInitHeading.children;
+		const materialInit = new THREE.MeshStandardMaterial({
+			roughness:1.0,
+			metalness:0.5,
+			color:0x999999
+		});
+		console.log('materialInit', materialInit);
 
-			        meshes.forEach( mesh => {
-			        	mesh.material = material;
-			        });
-			        scene.add( this._arrows1 );
-			        this._arrows1.visible = false;
-			    },
-			    ( xhr ) => {
-			        // called while loading is progressing
-			        console.log( `${( xhr.loaded / xhr.total * 100 )}% loaded` );
-			    },
-			    ( error ) => {
-			        // called when loading has errors
-			        console.error( 'An error happened', error );
-			    },
-			);
+		meshes.forEach( mesh => {
+			mesh.material = materialInit;
+		});
+		scene.add( this._arrowsInitHeading );
 	}
 
 
@@ -179,7 +198,7 @@ class SceneAR {
 			this._arrows.position.copy(front);	
 			this._arrows.rotation.y = -this._heading;
 		}
-		
+
 
 		let heading2 = this._heading + this.headingDiff;
 		front.x = 0;
@@ -189,11 +208,36 @@ class SceneAR {
 		front.applyAxisAngle(new THREE.Vector3(0, -1, 0), heading2);
 		front.add(camera.position);
 		front.y -= 0.5;
+
 		if(this._arrows1) {
 			this._arrows1.position.copy(front);	
 			this._arrows1.rotation.y = -heading2;
 		}
 
+
+		let heading3 = this._heading + ( this._initHeading - Device.headingLocal);
+
+		const q = new THREE.Quaternion();
+		q.setFromAxisAngle( new THREE.Vector3( 0, 1, 0 ), heading3 );
+
+		front = new THREE.Vector3(0, 0, -1);
+		
+		front.applyQuaternion(q);
+		// front.applyQuaternion(camera.quaternion);
+
+		front.setLength(3);
+		front.add(camera.position);
+
+		front.y = 0.2;
+
+		// front.applyAxisAngle(new THREE.Vector3(0, -1, 0), heading3);
+		// front.add(camera.position);
+		// front.y -= 0.5;
+
+		if(this._arrowsInitHeading) {
+			this._arrowsInitHeading.position.copy(front);	
+			this._arrowsInitHeading.rotation.y = -heading3;
+		}
 	}
 
 

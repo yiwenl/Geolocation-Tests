@@ -5,6 +5,10 @@ const fromLatLngToPixel = (map, position) => {
 	var proj = map.getProjection();
 	var bounds = map.getBounds();
 
+	if(!proj) {
+		return new google.maps.Point(0,0);
+	}
+
 	var nw = proj.fromLatLngToPoint(
 		new google.maps.LatLng(
 			bounds.getNorthEast().lat(),

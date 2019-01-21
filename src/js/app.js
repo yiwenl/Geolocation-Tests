@@ -91,9 +91,12 @@ function _initMap() {
 		title: 'Target 1'
 	});
 
+	let time = new Date().getTime();
+
 	const updateLocation = () => {
 
 		if (navigator.geolocation) {
+			
 		  	navigator.geolocation.getCurrentPosition( (o)=> {
 
 		  		oDebug.latitude = o.coords.latitude.toString();
@@ -137,20 +140,27 @@ function _initMap() {
 		  		const headingTarget = directionMapPoint(point, target) + Math.PI/2;
 		  		DebugInfo.headingTarget = headingTarget;
 		  		let headingDiff = headingTarget - (headingLocal + HeadingCalibrate.offset);
-		  		sceneAR.headingDiff = headingDiff;
+		  		if(sceneAR) {
+		  			sceneAR.headingDiff = headingDiff;	
+		  		}
+
+		  		alfrid.Scheduler.next(updateLocation);
+
+		  		if(!GL.isMobile) {
+		  			// _fake += 0.00005;
+		  			const t = new Date().getTime() * 0.001;
+		  			_fake = Math.sin(t) * 0.0015;
+		  		}
 
 		  	} );
+
 		}
 
-		if(!GL.isMobile) {
-			// _fake += 0.00005;
-			const t = new Date().getTime() * 0.05;
-			_fake = Math.sin(t) * 0.0015;
-		}
 	}
 
+	updateLocation();
 
-	setInterval(updateLocation, Config.geolocationInterval);
+	const options = {enableHighAccuracy: true,timeout: 500, maximumAge: 0,desiredAccuracy: 0 };
 
 	const oControls = {
 		toggleMinified:() => {
@@ -234,10 +244,10 @@ function _initMap() {
 
 
 	console.log('localhost ? ', window.location.href.indexOf('localhost') > -1);
-	// if(window.location.href.indexOf('localhost') > -1) {
-	// 	document.body.classList.add('hasCalibrated');
-	// 	oControls.toggleMinified();
-	// }
+	if(window.location.href.indexOf('localhost') > -1) {
+		document.body.classList.add('hasCalibrated');
+		oControls.toggleMinified();
+	}
 }
 
 function loop() {
