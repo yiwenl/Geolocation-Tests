@@ -186,15 +186,11 @@ function _initMap() {
 
 
 	setTimeout(()=> {
-		// gui.add(oDebug, 'latitude').listen();
-		// gui.add(oDebug, 'longitude').listen();
-		// gui.add(oDebug, 'headingOffset').listen();
 		gui.add(DebugInfo, 'distanceToTarget').name('Distance to Target').listen();
 		gui.add(DebugInfo, 'state').listen();
 		gui.add(DebugInfo, 'geoUpdateInterval').listen();
-		// gui.add(oDebug, 'dist2').listen();
-		gui.add(HeadingCalibrate, 'stateString').listen();
-		gui.add(oControls, 'toggleMinified');
+		// gui.add(HeadingCalibrate, 'stateString').listen();
+		// gui.add(oControls, 'toggleMinified');
 	}, 200);
 
 
