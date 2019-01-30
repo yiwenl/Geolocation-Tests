@@ -64,6 +64,10 @@ let locPrev = {lat: 51.528111499999994, lng: -0.0859945};
 let locCurr = {lat: 51.528111499999994, lng: -0.0859945};
 
 let _fake = 0;
+let myLoc = {
+	lat:0,
+	lng:0
+}
 
 function _initMap() {
 
@@ -89,20 +93,31 @@ function _initMap() {
 	});
 
 	let time = new Date().getTime();
+	console.log(navigator.geolocation.watchPosition);
+
+	navigator.geolocation.watchPosition((o)=> {
+		console.log('Position Upate : ', o.coords);
+		let t = new Date().getTime();
+		DebugInfo.geoUpdateInterval = `${t - time}`;
+		time = t;	
+	})
 
 	const updateLocation = () => {
 
 		if (navigator.geolocation) {
 			
 			navigator.geolocation.getCurrentPosition( (o)=> {
-				let t = new Date().getTime();
-				// console.log(t - time);
-				DebugInfo.geoUpdateInterval = `${t - time}`;
-				time = t;
-				// console.log('Geolocation update:', o.coords);
 
 				oDebug.latitude = o.coords.latitude.toString();
 				oDebug.longitude = o.coords.longitude.toString();
+				if(o.coords.latitude !== myLoc.lat && o.coords.longitude !== myLoc.lng) {
+					// console.log('Geolocation update:', o.coords);
+					// let t = new Date().getTime();
+					// DebugInfo.geoUpdateInterval = `${t - time}`;
+					// time = t;	
+					// myLoc.lat = o.coords.latitude;
+					// myLoc.lng = o.coords.longitude;
+				}
 
 
 				const myLatlng = {
@@ -188,7 +203,7 @@ function _initMap() {
 	setTimeout(()=> {
 		gui.add(DebugInfo, 'distanceToTarget').name('Distance to Target').listen();
 		gui.add(DebugInfo, 'state').listen();
-		gui.add(DebugInfo, 'geoUpdateInterval').listen();
+		// gui.add(DebugInfo, 'geoUpdateInterval').listen();
 		// gui.add(HeadingCalibrate, 'stateString').listen();
 		// gui.add(oControls, 'toggleMinified');
 	}, 200);
