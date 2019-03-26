@@ -35,7 +35,7 @@ const settings = {
 // const ARUtils = require('./ar/ARUtils')
 const axis = [ 0, 0, 0 ];
 
-const AVG_HUMAN_HEIGHT = 1.65; //	in meters
+const AVG_HUMAN_HEIGHT = 0.5; //	in meters
 
 function createMaterial (opt = {}) {
 
@@ -296,9 +296,9 @@ class SceneAR {
 
 		const meshes = new THREE.Group();
 		this.meshes = meshes;
-		let s = 8;
+		let s = 5;
 		this.meshes.scale.set(s, s, s);
-		this.meshes.position.set(0, 0, -0.5);
+		this.meshes.position.set(0, AVG_HUMAN_HEIGHT * 1.5, 0);
 		scene.add(meshes);
 
 		const ground = new THREE.Mesh(
