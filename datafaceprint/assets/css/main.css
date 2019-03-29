@@ -5,15 +5,7 @@ html, body {
   padding: 0;
   overflow: hidden;
   position: fixed;
-  /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#6d6d6d+0,000000+100 */
-  background: #333333;
-  /* Old browsers */
-  background: -moz-radial-gradient(center, ellipse cover, #333333 0%, #000000 100%);
-  /* FF3.6-15 */
-  background: -webkit-radial-gradient(center, ellipse cover, #333333 0%, #000000 100%);
-  /* Chrome10-25,Safari5.1-6 */
-  background: radial-gradient(ellipse at center, #333333 0%, #000000 100%);
-  /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */ }
+  background: black; }
 
 html {
   -webkit-text-size-adjust: none;
@@ -31,6 +23,21 @@ h1, h2, h3, h4, text, p {
   transition: opacity .5s ease-out .25s; }
   .isLoading .Main-Canvas {
     opacity: 0; }
+
+.container-ui {
+  width: 100%;
+  height: 100%;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  z-index: 888;
+  overflow: hidden;
+  pointer-events: none;
+  /*background-color: rgba(255, 0, 0, 0.25);*/
+  opacity: 0; }
+  .trackingReady .container-ui {
+    transition: opacity .5s ease-out .5s;
+    opacity: 1; }
 
 .container {
   width: 100%;
@@ -50,6 +57,7 @@ h1, h2, h3, h4, text, p {
   text-align: center;
   letter-spacing: 11px;
   color: white;
+  pointer-events: none;
   opacity: 0;
   transition: opacity .5s ease-out, letter-spacing .5s ease-out; }
   .isLoading .Message {
@@ -64,8 +72,151 @@ h1, h2, h3, h4, text, p {
   top: 50%;
   background: rgba(255, 255, 255, 0.5);
   opacity: 0;
+  pointer-events: none;
   transition: width .5s ease-out, opacity .5s ease-out; }
   .isLoading .Loading-Bar {
     opacity: 1; }
+
+.black-cover {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  left: 0;
+  top: 0;
+  background-color: 'black';
+  pointer-events: none;
+  transition: opacity .5s ease-out; }
+  .trackingReady .black-cover {
+    opacity: 0; }
+
+.webcam {
+  position: fixed;
+  left: -50%; }
+
+.imageData {
+  position: fixed;
+  z-index: 500;
+  transition: opacity .25s ease-in-out; }
+  .hideCam .imageData {
+    opacity: 0;
+    pointer-events: none; }
+
+.debugPoints {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  z-index: 501;
+  pointer-events: none;
+  display: none; }
+
+.wrapper-animation .animGif {
+  width: 128px;
+  height: 128px;
+  top: 74.7%;
+  left: 72%;
+  position: absolute; }
+
+.wrapper-state {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  position: absolute; }
+  .faceLost .wrapper-state {
+    display: none; }
+
+.wrapper-face-lost {
+  position: absolute;
+  width: 100%;
+  height: 100%; }
+
+.faceLostShort .lost-short {
+  display: block; }
+
+.faceLostLong .lost-long {
+  display: block; }
+
+.copy-img {
+  position: absolute;
+  width: 100%;
+  display: none; }
+
+.result-img {
+  width: 100%;
+  display: none; }
+
+.ref-img {
+  width: 100%;
+  opacity: 0.5; }
+
+.idle .msg-idle {
+  display: block; }
+
+/*	FOR ONBOARDING*/
+.onboardingInit .onboarding-init {
+  display: block; }
+
+.onboardingYes .onboarding-nod {
+  display: block; }
+
+.onboardingNo .onboarding-shake {
+  display: block; }
+
+.onboardingFinal .onboarding-end {
+  display: block; }
+
+/*	FOR QUESTIONS	*/
+.questionInit .question-init {
+  display: block; }
+
+.questionYes .question-yes {
+  display: block; }
+
+.questionNo .question-no {
+  display: block; }
+
+.question {
+  /*display: none;*/
+  opacity: 0; }
+
+.question0 .question-0 {
+  opacity: 1; }
+
+.question1 .question-1 {
+  opacity: 1; }
+
+.question2 .question-2 {
+  opacity: 1; }
+
+.question3 .question-3 {
+  opacity: 1; }
+
+.question4 .question-4 {
+  opacity: 1; }
+
+.question5 .question-5 {
+  opacity: 1; }
+
+.question6 .question-6 {
+  opacity: 1; }
+
+.wrapper-final {
+  display: none; }
+  .resultSmall .wrapper-final,
+  .resultAverage .wrapper-final,
+  .resultLarge .wrapper-final {
+    display: flex; }
+
+.resultSmall .result-small {
+  display: block; }
+
+.resultAverage .result-average {
+  display: block; }
+
+.resultLarge .result-large {
+  display: block; }
 
 /*# sourceMappingURL=main.css.map*/
