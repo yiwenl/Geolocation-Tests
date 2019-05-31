@@ -1,0 +1,11 @@
+{
+	"transform": {
+		"scale": 1.7,
+		"x":17,
+		"y":160
+	},
+	"diffThreshold": 0.35,
+	"expireTimeout": 180,
+	"minTrackingScale": 1,
+	"useMask":1
+}

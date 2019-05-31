@@ -10,8 +10,8 @@
 	<link rel="stylesheet" type="text/css" href="assets/css/main.css">
 </head>
 <body class='hideCam'>
-	<p class="Message">Loading Assets ...</p>
-	<div class="Loading-Bar"></div>
+	<!-- <p class="Message">Loading Assets ...</p> -->
+	<!-- <div class="Loading-Bar"></div> -->
 	<div class="black-cover"></div>
 	<div class="container-ui">
 		<div class="wrapper-state wrapper-animation"></div>
@@ -25,6 +25,49 @@
 	<script type="text/javascript">window.isDevelopment=true</script>
 	<script type="text/javascript" src=assets/js/app.js></script>
 	<script type="text/javascript" src=assets/js/debug.js></script>
+
+
+	<script type="text/javascript">
+	    window.onload = maxWindow;
+
+	    function requestFullScreen(element) {
+	        // Supports most browsers and their versions.
+	        var requestMethod = element.requestFullScreen || element.webkitRequestFullScreen || element.mozRequestFullScreen || element.msRequestFullScreen;
+
+	        if (requestMethod) { // Native full screen.
+	            requestMethod.call(element);
+	        } else if (typeof window.ActiveXObject !== "undefined") { // Older IE.
+	            var wscript = new ActiveXObject("WScript.Shell");
+	            if (wscript !== null) {
+	                wscript.SendKeys("{F11}");
+	            }
+	        }
+	    }
+
+
+	    function maxWindow() {
+	        window.moveTo(0, 0);
+	        console.log('max window');
+	        console.log('max window');
+	        console.log('max window', document.all);
+
+	        if (document.all) {
+	            top.window.resizeTo(screen.availWidth, screen.availHeight);
+	        }
+
+	        else if (document.layers || document.getElementById) {
+	            if (top.window.outerHeight < screen.availHeight || top.window.outerWidth < screen.availWidth) {
+	                top.window.outerHeight = screen.availHeight;
+	                top.window.outerWidth = screen.availWidth;
+	            }
+	        }
+
+	        var elem = document.body; // Make the body go full screen.
+			requestFullScreen(elem);
+	    }
+
+
+	</script> 
 	
 </body>
 </html>
